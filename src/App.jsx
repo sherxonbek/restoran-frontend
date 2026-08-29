@@ -1,28 +1,28 @@
-// src/App.jsx
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import BgImage from '/public/assets/bg-image.jpg'
-import MainLayout from './components/navigation/MainLayout'
-import Xodimlar from './pages/admin/Xodimlar'
-import Statistika from './pages/admin/Statistika'
-import Sozlamalar from './pages/admin/Sozlamalar'
-import Xonalar from './pages/admin/Xonalar'
-import Home from './pages/admin/Home'
+import { useDispatch } from "react-redux";
+import router from "./components/navigation/navigate";
+import { RouterProvider } from 'react-router-dom';
+import { useEffect } from "react";
+import { fetchUsers } from "./server/Slice/userSlice";
 
 function App() {
+  
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchUsers())
+  }, [])
+
   return (
-    <div style={{ backgroundImage: `url(${BgImage})` }} className="flex h-screen w-screen overflow-hidden bg-cover bg-center font-sans antialiased relative">
-      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md z-0">
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<Home />} />
-              <Route path="/admin/xodimlar" element={<Xodimlar />} />
-              <Route path="/admin/xonalar" element={<Xonalar />} />
-              <Route path="/admin/statistika" element={<Statistika />} />
-              <Route path="/admin/sozlamalar" element={<Sozlamalar />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
+    <div>
+      <div
+        style={{ backgroundImage: `url('/assets/bg-image.jpg')` }}
+        className="flex h-screen w-screen overflow-hidden bg-cover bg-center font-sans antialiased relative"
+      >
+        <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md z-0 pointer-events-none" />
+
+        <div className="relative z-10 flex-1 flex h-full w-full">
+          <RouterProvider router={router} />
+        </div>
       </div>
     </div>
   )
