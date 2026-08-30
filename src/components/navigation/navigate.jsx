@@ -9,6 +9,7 @@ import Sozlamalar from "@/pages/admin/Sozlamalar";
 import Maxsulotlar from "@/pages/admin/Sozlamalar/Maxsulotlar";
 import Login from "@/pages/auth/Login";
 import Home from "@/pages/admin/Home";
+import Stollar from "@/pages/admin/Stollar";
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
             <Xonalar />
           </Suspense>
         )
+      },
+      {
+        path: 'admin/xonalar/:roomId',
+        element: <Stollar />
       },
       {
         path: 'admin/statistika',

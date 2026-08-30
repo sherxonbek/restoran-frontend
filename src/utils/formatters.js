@@ -1,4 +1,4 @@
-export const formatUzbekPhoneNumber = (input, currentPhone) => {
+export const formatUzbekPhoneNumber = (input) => {
   if (input.length < 5) return "+998 ";
 
   const rawNumbers = input.slice(5).replace(/\D/g, "");

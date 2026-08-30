@@ -3,6 +3,7 @@ import router from "./components/navigation/navigate";
 import { RouterProvider } from 'react-router-dom';
 import { useEffect } from "react";
 import { fetchUsers } from "./server/Slice/userSlice";
+import { getRoom } from "./server/Slice/roomSlice";
 
 function App() {
   
@@ -10,7 +11,8 @@ function App() {
 
   useEffect(() => {
     dispatch(fetchUsers())
-  }, [])
+    dispatch(getRoom())
+  },[])
 
   return (
     <div>

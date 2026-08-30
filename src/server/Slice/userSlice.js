@@ -1,4 +1,3 @@
-// https://6a932d4125936d5660f09f8d.mockapi.io/api/user
 
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
@@ -8,7 +7,6 @@ const API_URL = "https://6a932d4125936d5660f09f8d.mockapi.io/api/user/"; // Mock
 export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
     const response = await axios.get(API_URL);
     const res = response.data;
-    console.log(res);
     return res;
 })
 
