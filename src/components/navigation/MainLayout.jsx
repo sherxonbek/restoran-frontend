@@ -9,7 +9,7 @@ export default function MainLayout() {
       
       <Navbar />
       
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-24 text-white">
+      <main className="flex-1 overflow-y-auto md:p-6 lg:p-8 text-white">
         <Outlet />
       </main>
       

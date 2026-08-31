@@ -67,8 +67,6 @@ export const deleteTable = createAsyncThunk(
     "rooms/deleteTable",
     async ({ tableId, roomId }, { getState, rejectWithValue }) => {
         try {
-            // await axios.delete(`${TABLES_URL}/${roomId}/${tableId}`);
-            // Bu kod /tables/13/2 qilib yuboradi va MockAPI uni tushunmay 400 xato beradi
             await axios.delete(`${TABLES_URL}/${tableId}/`);
 
             const state = getState();

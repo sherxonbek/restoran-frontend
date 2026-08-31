@@ -40,7 +40,7 @@ function Statistika() {
   const formatUzSum = (val) => `${(val / 1000).toLocaleString()} k`
 
   return (
-    <div className="p-4 space-y-6 text-white">
+    <div className="p-4 space-y-6 text-white  mb-15">
       <div className="relative grid grid-cols-2 gap-5">
         <button
           onClick={() => setIsOpen("kirm")}
