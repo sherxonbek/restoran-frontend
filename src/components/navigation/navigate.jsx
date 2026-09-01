@@ -10,6 +10,7 @@ import Maxsulotlar from "@/pages/admin/Sozlamalar/Maxsulotlar";
 import Login from "@/pages/auth/Login";
 import Home from "@/pages/admin/Home";
 import Stollar from "@/pages/admin/Stollar";
+import MaxsulotDetallari from "@/pages/admin/Sozlamalar/MaxsulotDetallari";
 
 const router = createBrowserRouter([
   {
@@ -68,6 +69,10 @@ const router = createBrowserRouter([
           </Suspense>
         )
       },
+      {
+        path: 'admin/maxsulotlar/:productId',
+        element: <MaxsulotDetallari />
+      }
     ],
   },
   {
