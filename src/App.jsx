@@ -4,6 +4,7 @@ import { RouterProvider } from 'react-router-dom';
 import { useEffect } from "react";
 import { fetchUsers } from "./server/Slice/userSlice";
 import { getRoom } from "./server/Slice/roomSlice";
+import { fetchProducts } from "./server/Slice/productSlice";
 
 function App() {
   
@@ -12,6 +13,7 @@ function App() {
   useEffect(() => {
     dispatch(fetchUsers())
     dispatch(getRoom())
+    dispatch(fetchProducts())
   },[])
 
   return (

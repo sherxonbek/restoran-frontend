@@ -27,7 +27,7 @@ function Maxsulotlar() {
     const [masalliqMiqdori, setMasalliqMiqdori] = useState("");
     const [miqdorTuri, setMiqdorTuri] = useState("g")
 
-    const { products } = useSelector((state) => state.products);
+    const { products, loading } = useSelector((state) => state.products);
 
     const closeModal = () => {
         setIsModalOpen(false);
@@ -177,6 +177,13 @@ function Maxsulotlar() {
         mavjudCat.count += 1;
     });
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-gray-900">
+                <div className="text-white text-lg font-bold">Loading...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col w-full h-screen bg-gray-900 gap-4">
@@ -195,7 +202,7 @@ function Maxsulotlar() {
             {/* Maxsulotlarni filtirlash */}
             {
                 products.length > 0 ? (
-                    <div>
+                    <div className="flex flex-col gap-4 overflow-y-auto">
                         <div className="flex gap-4 px-1 py-2 bg-gray-800  overflow-x-auto ">
                             {
                                 dinamikKategoriyalar.map((item) => {
