@@ -2,6 +2,7 @@ import { Hamburger, Martini, Salad, CakeSlice, Utensils, GalleryHorizontalEnd, D
 import { useState } from "react"
 import { useDispatch, useSelector } from "react-redux";
 import { addProduct } from "@/server/Slice/productSlice"; // thunk import qilindi
+import Card from "./Card";
 
 
 function Maxsulotlar() {
@@ -192,31 +193,42 @@ function Maxsulotlar() {
             </div>
 
             {/* Maxsulotlarni filtirlash */}
-            <div className="flex gap-4 px-1 py-2 bg-gray-800  overflow-x-auto ">
-                {
-                    dinamikKategoriyalar.map((item) => {
-                        const isSelected = activeCategory?.toLowerCase() === item.category?.toLowerCase();
+            {
+                products.length > 0 ? (
+                    <div>
+                        <div className="flex gap-4 px-1 py-2 bg-gray-800  overflow-x-auto ">
+                            {
+                                dinamikKategoriyalar.map((item) => {
+                                    const isSelected = activeCategory?.toLowerCase() === item.category?.toLowerCase();
 
-                        return (
-                            <div
-                                onClick={() => setActiveCategory(item.category)}
-                                key={item.id}
-                                className="relative flex gap-2 bg-amber-700 p-4 rounded-md font-bold text-xl btn-shadow cursor-pointer select-none whitespace-nowrap"
-                                style={isSelected ? { backgroundColor: "#f59e0b" } : {}}
-                            >
-                                {item.icon}
-                                <p className="text-white whitespace-nowrap mr-5">{item.category}</p>
-                                <p
-                                    className="absolute top-0 right-0 border rounded-4xl px-1 bg-black text-blue-400 whitespace-nowrap btn-shadow"
-                                    style={isSelected ? { backgroundColor: "#1f5202", color: "white", border: "3px solid darkgreen" } : {}}
-                                >
-                                    {item.count}
-                                </p>
-                            </div>
-                        )
-                    })
-                }
-            </div>
+                                    return (
+                                        <div
+                                            onClick={() => setActiveCategory(item.category)}
+                                            key={item.id}
+                                            className="relative flex gap-2 bg-amber-700 p-4 rounded-md font-bold text-xl btn-shadow cursor-pointer select-none whitespace-nowrap"
+                                            style={isSelected ? { backgroundColor: "#f59e0b" } : {}}
+                                        >
+                                            {item.icon}
+                                            <p className="text-white whitespace-nowrap mr-5">{item.category}</p>
+                                            <p
+                                                className="absolute top-0 right-0 border rounded-4xl px-1 bg-black text-blue-400 whitespace-nowrap btn-shadow"
+                                                style={isSelected ? { backgroundColor: "#1f5202", color: "white", border: "3px solid darkgreen" } : {}}
+                                            >
+                                                {item.count}
+                                            </p>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
+                        {<Card />}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-full gap-4">
+                        <h1 className="text-white text-lg font-bold">Hozircha maxsulotlar mavjud emas...</h1>
+                    </div>
+                )
+            }
 
             {/* maxsulot qo'shish */}
             {
@@ -356,20 +368,18 @@ function Maxsulotlar() {
                                                 Kategoriya (Izlang yoki Yangi yozing):
                                             </label>
 
-                                            {/* Admin yozadigan toza input */}
                                             <input
                                                 id="categoryInput"
                                                 type="text"
-                                                list="categoriesList" // pastdagi datalist bilan bog'laymiz
+                                                list="categoriesList"
                                                 value={category}
-                                                onChange={(e) => setCategory(e.target.value)} // Admin harf yozganda state o'zgaradi
+                                                onChange={(e) => setCategory(e.target.value)}
                                                 required
                                                 autoComplete="off"
                                                 className="w-full p-2.5 rounded-xl bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-white"
                                                 placeholder="Masalan: Fast-food yoki Milliy taomlar"
                                             />
 
-                                            {/* Admin harf yozganda b, l, s harflariga qarab avtomat filtrlab taklif qiluvchi oyna */}
                                             <datalist id="categoriesList">
                                                 {mavjudKategoriyalar.map((cat, idx) => (
                                                     <option key={idx} value={cat} />

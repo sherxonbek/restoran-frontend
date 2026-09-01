@@ -49,6 +49,7 @@ const productSlice = createSlice({
                 state.error = action.error.message;
             })
 
+            //maxsulot qoshish va ochirish uchun
             .addCase(addProduct.fulfilled, (state, action) => {
                 state.products.unshift(action.payload);
             })
