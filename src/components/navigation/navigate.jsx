@@ -13,6 +13,7 @@ import Stollar from "@/pages/admin/Stollar";
 import MaxsulotDetallari from "@/pages/admin/Sozlamalar/MaxsulotDetallari";
 import Homes from "@/pages/Ofitsiant/Home"
 import OfLayout from "./OfLayout";
+import OfitsiantBuyurtma from "@/pages/Ofitsiant/OfitsiantBuyurtma";
 
 const router = createBrowserRouter([
   {
@@ -45,7 +46,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'admin/xonalar/:roomId',
-        element: <Stollar navg ={'/admin/xonalar'}/>
+        element: <Stollar navg={'/admin/xonalar'} />
       },
       {
         path: 'admin/statistika',
@@ -96,8 +97,12 @@ const router = createBrowserRouter([
       },
       {
         path: 'xona/:roomId',
-        element: <Stollar navg={'/ofitsiant'}/>
+        element: <Stollar navg={'/ofitsiant'} />
       },
+      {
+        path: 'buyurtma/xona/:roomId/stol/:tableId', // Xona va Stol ID birga keladi
+        element: <OfitsiantBuyurtma />
+      }
     ]
   },
 ]);

@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { deleteTable, fetchTables, getRoom } from "@/server/Slice/roomSlice";
 import { ArrowLeft, Trash2 } from "lucide-react";
 
-function Stollar({navg}) {
+function Stollar({ navg }) {
     const { roomId } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -53,7 +53,13 @@ function Stollar({navg}) {
                         return (
                             <div
                                 key={table.id}
-                                className="relative flex flex-col items-center justify-center p-6 border border-slate-800 bg-slate-900/50 rounded-2xl shadow-lg hover:border-indigo-500/40 transition-all duration-200 group"
+                                onClick={() => {
+                                    if (navg === '/ofitsiant') {
+                                        navigate(`/ofitsiant/buyurtma/xona/${roomId}/stol/${table.id}`);
+                                    }
+                                }}
+                                className={`relative flex flex-col items-center justify-center p-6 border border-slate-800 bg-slate-900/50 rounded-2xl shadow-lg hover:border-indigo-500/40 transition-all duration-200 group ${navg.startsWith('/ofitsiant/xona') ? 'cursor-pointer' : ''
+                                    }`}
                             >
                                 <div className="text-3xl mb-2 select-none">🪑</div>
                                 <h4 className="font-mono text-sm font-bold text-slate-200">{tozaStolNomi}</h4>
@@ -62,16 +68,19 @@ function Stollar({navg}) {
                                     {table.status || "bo'sh"}
                                 </span>
 
-                                <button
-                                    className="absolute top-2 right-2 p-1.5 text-slate-500 hover:text-rose-400 bg-slate-950/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                    onClick={(e) => {
-                                        dispatch(deleteTable({ tableId: table.id, roomId: roomId })); 
-                                        e.stopPropagation();
-                                    }}
-                                >
-                                    <Trash2 size={13} />
-                                </button>
+                                {navg === '/admin/xonalar' && (
+                                    <button
+                                        className="absolute top-2 right-2 p-1.5 text-slate-500 hover:text-rose-400 bg-slate-950/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            dispatch(deleteTable({ tableId: table.id, roomId: roomId }));
+                                        }}
+                                    >
+                                        <Trash2 size={13} />
+                                    </button>
+                                )}
                             </div>
+
                         );
                     })}
                 </div>
