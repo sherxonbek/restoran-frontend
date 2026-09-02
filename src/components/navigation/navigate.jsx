@@ -11,6 +11,8 @@ import Login from "@/pages/auth/Login";
 import Home from "@/pages/admin/Home";
 import Stollar from "@/pages/admin/Stollar";
 import MaxsulotDetallari from "@/pages/admin/Sozlamalar/MaxsulotDetallari";
+import Homes from "@/pages/Ofitsiant/Home"
+import OfLayout from "./OfLayout";
 
 const router = createBrowserRouter([
   {
@@ -43,7 +45,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'admin/xonalar/:roomId',
-        element: <Stollar />
+        element: <Stollar navg ={'/admin/xonalar'}/>
       },
       {
         path: 'admin/statistika',
@@ -72,7 +74,7 @@ const router = createBrowserRouter([
       {
         path: 'admin/maxsulotlar/:productId',
         element: <MaxsulotDetallari />
-      }
+      },
     ],
   },
   {
@@ -82,7 +84,22 @@ const router = createBrowserRouter([
         <Login />
       </Suspense>
     ),
-  }
+  },
+  //afitsant pages navigator
+  {
+    path: 'ofitsiant/',
+    element: <OfLayout />,
+    children: [
+      {
+        index: true,
+        element: <Homes />
+      },
+      {
+        path: 'xona/:roomId',
+        element: <Stollar navg={'/ofitsiant'}/>
+      },
+    ]
+  },
 ]);
 
 export default router;

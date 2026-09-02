@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { deleteTable, fetchTables, getRoom } from "@/server/Slice/roomSlice";
 import { ArrowLeft, Trash2 } from "lucide-react";
 
-function Stollar() {
+function Stollar({navg}) {
     const { roomId } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -28,7 +28,7 @@ function Stollar() {
         <div className="w-full h-full p-6 text-white bg-slate-950 overflow-y-auto rounded-xl">
             <div className="flex items-center gap-4 mb-6">
                 <button
-                    onClick={() => navigate("/admin/xonalar")}
+                    onClick={() => navigate(navg)}
                     className="p-2 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 transition-colors"
                 >
                     <ArrowLeft size={18} />

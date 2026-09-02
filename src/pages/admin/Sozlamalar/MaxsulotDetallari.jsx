@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react"; // useState qo'shildi
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getProduct, updateProduct, deleteProduct } from "@/server/Slice/productSlice";
 import { CircleCheck, Trash, PenLine, X, Check } from "lucide-react"; // Yangi ikonalar
 
 function MaxsulotDetallari() {
     const dispatch = useDispatch();
+    const navigate = useNavigate()
     const { productId } = useParams();
     const { products, loading } = useSelector((state) => state.products);
 
@@ -59,6 +60,8 @@ function MaxsulotDetallari() {
     const handleDelete = async () => {
         try {
             await dispatch(deleteProduct(productId)).unwrap();
+            setIsDeleted(false);
+            navigate("/admin/maxsulotlar");
         } catch (error) {
             console.error("O'chirishda xatolik:", error);
             alert("Maxsulotni o'chirib bo'lmadi. Qaytadan urinib ko'ring!");
