@@ -1,35 +1,41 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import { db } from "../firebase";
+import { collection, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 
-const API_URL = "https://6a9410310e895b145e5f42ac.mockapi.io/api/praducts";
 
 export const fetchProducts = createAsyncThunk("products/fetchProducts", async () => {
-    const response = await axios.get(API_URL);
+    const response = await getDoc(collection(db, "products"));
     return response.data;
 });
 
-export const getProduct = createAsyncThunk("products/getProduct", async (productId) => {
-    const response = await axios.get(`${API_URL}/${productId}`);
-    return response.data;
+export const getProduct = createAsyncThunk("products/getProduct", async (productId, { rejectWithValue }) => {
+    try {
+        const docRef = doc(db, "products", productId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() };
+        } else {
+            return rejectWithValue("Mahsulot topilmadi");
+        }
+    } catch (error) {
+        return rejectWithValue(error.message);
+    }
 });
 
 export const updateProduct = createAsyncThunk("products/updateProduct", async ({ id, updatedData }) => {
-    const response = await axios.put(`${API_URL}/${id}`, updatedData);
-    return response.data;
+    const productRef = doc(db, "products", id);
+    await updateDoc(productRef, updatedData);
+    return { id, ...updatedData };
 });
 
-// export const deleteProduct = createAsyncThunk("products/deleteProduct", async (productId) => {
-//     await axios.delete(`${API_URL}/${productId}`);
-//     return productId;
-// });
-
 export const addProduct = createAsyncThunk("products/addProduct", async (newProductData) => {
-    const response = await axios.post(API_URL, newProductData);
-    return response.data;
+    const docRef = await addDoc(collection(db, "products"), newProductData);
+    return { id: docRef.id, ...newProductData };
 });
 
 export const deleteProduct = createAsyncThunk("products/deleteProduct", async (productId) => {
-    await axios.delete(`${API_URL}/${productId}`);
+    await deleteDoc(doc(db, "products", productId));
     return productId;
 });
 
@@ -40,7 +46,12 @@ const productSlice = createSlice({
         loading: false,
         error: null,
     },
-    reducers: {},
+    reducers: {
+        setProductsRealTime: (state, action) => {
+            state.products = action.payload;
+            state.loading = false;
+        }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchProducts.pending, (state) => {
@@ -56,10 +67,6 @@ const productSlice = createSlice({
                 state.error = action.error.message;
             })
 
-            //maxsulot qoshish va ochirish uchun
-            .addCase(addProduct.fulfilled, (state, action) => {
-                state.products.unshift(action.payload);
-            })
             .addCase(addProduct.rejected, (state, action) => {
                 state.error = action.payload;
             })
@@ -101,4 +108,5 @@ const productSlice = createSlice({
     },
 });
 
+export const { setProductsRealTime } = productSlice.actions;
 export default productSlice.reducer;

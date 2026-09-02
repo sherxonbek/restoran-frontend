@@ -2,16 +2,25 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ShoppingBag, ChevronLeft, Plus, Minus, CheckCircle, ShoppingCart } from "lucide-react";
 import { useSelector } from "react-redux";
+import { db } from "@/server/firebase";
+import { collection, addDoc } from "firebase/firestore";
 
 function OfitsiantBuyurtma() {
-    const { tableId } = useParams();
+    const { roomId, tableId } = useParams();
     const navigate = useNavigate();
+    
     const { products } = useSelector((state) => state.products);
+    const { tables } = useSelector((state) => state.rooms);
 
     const [cart, setCart] = useState([]);
     const [activeCategory, setActiveCategory] = useState("");
     const [activeSubcategory, setActiveSubcategory] = useState("");
     const [isCartOpen, setIsCartOpen] = useState(false);
+
+    const joriyStolObyekti = tables.find(t => String(t.id) === String(tableId));
+    const haqqoniyStolNomi = joriyStolObyekti
+        ? (joriyStolObyekti.name.includes("/") ? joriyStolObyekti.name.split("/")[1]?.trim() : joriyStolObyekti.name)
+        : `№${tableId}`;
 
     const mavjudKategoriyalar = [
         ...new Set(products.map(p => p.category?.trim()).filter(Boolean))
@@ -39,9 +48,6 @@ function OfitsiantBuyurtma() {
         }
     }, [activeCategory, products]);
 
-    console.log("Mavjud subkategoriyalar:", mavjudSubKategoriyalar);
-    console.log("Mavjud kategoriya:", mavjudKategoriyalar);
-
     const addToCart = (item) => {
         const existing = cart.find(cartItem => cartItem.id === item.id);
         if (existing) {
@@ -62,12 +68,34 @@ function OfitsiantBuyurtma() {
 
     const totalSum = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    const handleConfirmOrder = () => {
+    const handleConfirmOrder = async () => {
         if (cart.length === 0) return alert("Savatcha bo'sh!");
-        console.log(`Stol №${tableId} uchun buyurtma:`, cart);
-        alert("Buyurtma oshxonaga muvaffaqiyatli yuborildi!");
-        setCart([]);
-        navigate(-1);
+        
+        try {
+            const yangiBuyurtma = {
+                roomId: roomId || "1",
+                tableId: tableId,
+                tableName: haqqoniyStolNomi,
+                items: cart.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity
+                })),
+                totalPrice: totalSum,
+                status: "yangi",
+                createdAt: new Date().toISOString()
+            };
+
+            await addDoc(collection(db, "orders"), yangiBuyurtma);
+            
+            alert(`${haqqoniyStolNomi} uchun buyurtma oshxonaga yuborildi!`);
+            setCart([]);
+            navigate(-1);
+        } catch (error) {
+            console.error("Buyurtma yuborishda xato:", error);
+            alert("Xatolik yuz berdi!");
+        }
     };
 
     const filtrgachaBulganTaomlar = products?.filter(item => {
@@ -86,7 +114,7 @@ function OfitsiantBuyurtma() {
                     <button onClick={() => navigate(-1)} className="p-2 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 transition cursor-pointer">
                         <ChevronLeft size={20} />
                     </button>
-                    <h2 className="text-xl font-bold font-mono">Stol №{tableId}</h2>
+                    <h2 className="text-xl font-bold font-mono text-indigo-400">{haqqoniyStolNomi} &bull; Menyu</h2>
                 </div>
 
                 <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
@@ -144,64 +172,61 @@ function OfitsiantBuyurtma() {
                 <ShoppingCart color="#ffffff" />
             </div>
 
-
-            {
-                isCartOpen && (
-                    <div className="w-full bg-slate-900/40 p-6 flex flex-col justify-between">
-                        <div>
-                            <div className="flex items-center justify-between items-center text-center pb-4">
-                                <div className="flex items-center gap-2">
-                                    <ShoppingBag className="text-indigo-400" size={22} />
-                                    <h3 className="text-lg font-bold">Savatcha ({cart.length})</h3>
-                                </div>
-                                <button
-                                    onClick={() => setIsCartOpen(false)}
-                                    className="flex items-center gap-1 text-slate-400 hover:text-slate-200 transition cursor-pointer">
-                                    <ChevronLeft size={24} />
-                                    <span className="text-lg font-bold">Yopish</span>
-                                </button>
-                            </div>
-
-                            <div className="space-y-4 overflow-y-auto max-h-[22vh] pr-1">
-                                {cart.length === 0 ? (
-                                    <p className="text-slate-500 text-center py-10 text-sm">Hali hech narsa tanlanmadi</p>
-                                ) : (
-                                    cart.map(item => (
-                                        <div key={item.id} className="flex justify-between items-center p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                                            <div className="flex-1 min-w-0 pr-2">
-                                                <h5 className="font-medium text-sm text-slate-200 truncate">{item.name}</h5>
-                                                <p className="text-xs text-slate-400 font-mono mt-0.5">{(item.price * item.quantity).toLocaleString()} so'm</p>
-                                            </div>
-                                            <div className="flex items-center gap-2 bg-slate-900 px-2 py-1 rounded-xl border border-slate-800">
-                                                <button onClick={() => removeFromCart(item.id)} className="text-slate-400 hover:text-rose-400 cursor-pointer"><Minus size={14} /></button>
-                                                <span className="text-sm font-bold font-mono px-1 w-4 text-center">{item.quantity}</span>
-                                                <button onClick={() => addToCart(item)} className="text-slate-400 hover:text-emerald-400 cursor-pointer"><Plus size={14} /></button>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="border-t border-slate-800 pt-4 mt-4">
-                            <div className="flex justify-between items-center mb-4">
-                                <span className="text-slate-400 text-sm">Umumiy summa:</span>
-                                <span className="text-xl font-bold font-mono text-emerald-400">{totalSum.toLocaleString()} so'm</span>
+            {isCartOpen && (
+                <div className="w-full lg:w-96 bg-slate-950 border-l border-slate-800 p-6 flex flex-col justify-between h-full fixed lg:static right-0 top-0 z-50 shadow-2xl">
+                    <div>
+                        <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+                            <div className="flex items-center gap-2">
+                                <ShoppingBag className="text-indigo-400" size={22} />
+                                <h3 className="text-lg font-bold">Savatcha ({cart.length})</h3>
                             </div>
                             <button
-                                onClick={handleConfirmOrder}
-                                disabled={cart.length === 0}
-                                className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-base transition duration-200 ${cart.length === 0
-                                    ? 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed'
-                                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 cursor-pointer'
-                                    }`}
+                                onClick={() => setIsCartOpen(false)}
+                                className="flex items-center gap-1 text-slate-400 hover:text-slate-200 transition cursor-pointer"
                             >
-                                <CheckCircle size={18} /> Oshxonaga yuborish
+                                <span className="text-sm font-bold bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">Yopish</span>
                             </button>
                         </div>
+
+                        <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-1">
+                            {cart.length === 0 ? (
+                                <p className="text-slate-500 text-center py-10 text-sm">Hali hech narsa tanlanmadi</p>
+                            ) : (
+                                cart.map(item => (
+                                    <div key={item.id} className="flex justify-between items-center p-3 bg-slate-900/40 border border-slate-800/80 rounded-xl">
+                                        <div className="flex-1 min-w-0 pr-2">
+                                            <h5 className="font-medium text-sm text-slate-200 truncate">{item.name}</h5>
+                                            <p className="text-xs text-slate-400 font-mono mt-0.5">{(item.price * item.quantity).toLocaleString()} so'm</p>
+                                        </div>
+                                        <div className="flex items-center gap-2 bg-slate-900 px-2 py-1 rounded-xl border border-slate-800">
+                                            <button onClick={() => removeFromCart(item.id)} className="text-slate-400 hover:text-rose-400 cursor-pointer"><Minus size={14} /></button>
+                                            <span className="text-sm font-bold font-mono px-1 w-4 text-center">{item.quantity}</span>
+                                            <button onClick={() => addToCart(item)} className="text-slate-400 hover:text-emerald-400 cursor-pointer"><Plus size={14} /></button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
-                )
-            }
+
+                    <div className="border-t border-slate-800 pt-4 mt-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-slate-400 text-sm">Umumiy summa:</span>
+                            <span className="text-xl font-bold font-mono text-emerald-400">{totalSum.toLocaleString()} so'm</span>
+                        </div>
+                        <button
+                            onClick={handleConfirmOrder}
+                            disabled={cart.length === 0}
+                            className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-base transition duration-200 ${cart.length === 0
+                                ? 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed'
+                                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 cursor-pointer'
+                                }`}
+                        >
+                            <CheckCircle size={18} /> Oshxonaga yuborish
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

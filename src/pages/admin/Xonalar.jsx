@@ -1,7 +1,7 @@
 import { AddBtn } from "@/components/ui/AddButton";
-import { addRoom, addTables, deleteRoom, fetchTables, getRoom } from "@/server/Slice/roomSlice";
+import { addRoom, addTables, deleteRoom} from "@/server/Slice/roomSlice";
 import { Grip, House, Landmark, Pencil, Trash2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
@@ -23,11 +23,6 @@ function Xonalar() {
   const [tableTempCount, setTableTempCount] = useState("");
   const [selectedRoomForTables, setSelectedRoomForTables] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
-
-  useEffect(() => {
-    dispatch(getRoom());
-    dispatch(fetchTables());
-  }, [dispatch]);
 
   const handleSave = () => {
     if (tempCount === "" || isNaN(tempCount) || parseInt(tempCount) <= 0) return;
@@ -67,9 +62,8 @@ function Xonalar() {
 
     const countToCreate = parseInt(tableTempCount);
     const roomId = selectedRoomForTables.id;
-    const roomName = selectedRoomForTables.name; // Bu yerda aniq "Zal 1" yoki "Xona 2" keladi
+    const roomName = selectedRoomForTables.name;
 
-    // Haqiqiy stollar sonini aniqlash (ustma-ust to'g'ri hisoblash uchun)
     const haqiqiyStollarSoni = tables.filter(t => t.roomId === roomId).length;
 
     const newTablesArray = [];
@@ -77,14 +71,13 @@ function Xonalar() {
       const nextTableNumber = haqiqiyStollarSoni + i;
       newTablesArray.push({
         roomId: roomId,
-        name: `${roomName} / ${nextTableNumber}-stol`, // Masalan: "Zal 1 / 3-stol" bo'lib tushadi!
+        name: `${roomName} / ${nextTableNumber}-stol`,
         status: "bo'sh"
       });
     }
 
     const newTotalCount = haqiqiyStollarSoni + countToCreate;
 
-    // Thunk-ga barcha tayyor parametrlarni uzatamiz
     dispatch(addTables({
       newTablesList: newTablesArray,
       roomId: roomId,

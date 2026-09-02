@@ -1,7 +1,6 @@
-import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { deleteTable, fetchTables, getRoom } from "@/server/Slice/roomSlice";
+import { deleteTable } from "@/server/Slice/roomSlice";
 import { ArrowLeft, Trash2 } from "lucide-react";
 
 function Stollar({ navg }) {
@@ -11,14 +10,9 @@ function Stollar({ navg }) {
 
     const { rooms, tables, loading } = useSelector((state) => state.rooms);
 
-    useEffect(() => {
-        if (rooms.length === 0) dispatch(getRoom());
-        dispatch(fetchTables());
-    }, [dispatch, rooms.length]);
+    const joriyXona = rooms.find((r) => String(r.id) === String(roomId));
 
-    const joriyXona = rooms.find((r) => r.id === roomId);
-
-    const xonaStollari = tables.filter((t) => t.roomId === roomId);
+    const xonaStollari = tables.filter((t) => String(t.roomId) === String(roomId));
 
     if (loading) {
         return <div className="flex items-center justify-center h-screen text-white">Yuklanmoqda...</div>;
@@ -29,7 +23,7 @@ function Stollar({ navg }) {
             <div className="flex items-center gap-4 mb-6">
                 <button
                     onClick={() => navigate(navg)}
-                    className="p-2 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 transition-colors"
+                    className="p-2 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                     <ArrowLeft size={18} />
                 </button>
@@ -48,7 +42,9 @@ function Stollar({ navg }) {
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {xonaStollari.map((table) => {
-                        const tozaStolNomi = table.name.split("/")?.[1]?.trim() || table.name;
+                        const tozaStolNomi = table.name && table.name.includes("/")
+                            ? table.name.split("/")?.[1]?.trim() 
+                            : table.name || "Nomsiz Stol";
 
                         return (
                             <div
@@ -58,8 +54,9 @@ function Stollar({ navg }) {
                                         navigate(`/ofitsiant/buyurtma/xona/${roomId}/stol/${table.id}`);
                                     }
                                 }}
-                                className={`relative flex flex-col items-center justify-center p-6 border border-slate-800 bg-slate-900/50 rounded-2xl shadow-lg hover:border-indigo-500/40 transition-all duration-200 group ${navg.startsWith('/ofitsiant/xona') ? 'cursor-pointer' : ''
-                                    }`}
+                                className={`relative flex flex-col items-center justify-center p-6 border border-slate-800 bg-slate-900/50 rounded-2xl shadow-lg hover:border-indigo-500/40 transition-all duration-200 group ${
+                                    navg === '/ofitsiant' ? 'cursor-pointer' : ''
+                                }`}
                             >
                                 <div className="text-3xl mb-2 select-none">🪑</div>
                                 <h4 className="font-mono text-sm font-bold text-slate-200">{tozaStolNomi}</h4>
@@ -80,7 +77,6 @@ function Stollar({ navg }) {
                                     </button>
                                 )}
                             </div>
-
                         );
                     })}
                 </div>
