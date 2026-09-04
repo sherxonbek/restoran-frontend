@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { db } from "@/server/firebase"; 
+import { db } from "@/server/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
 import { setProductsRealTime } from "@/server/Slice/productSlice";
-import { setRoomsRealTime, setTablesRealTime } from "@/server/Slice/roomSlice";
+import { setOrdersRealTime, setRoomsRealTime, setTablesRealTime } from "@/server/Slice/roomSlice";
 
 export function useRealTimeData() {
   const dispatch = useDispatch();
@@ -27,10 +27,17 @@ export function useRealTimeData() {
       dispatch(setTablesRealTime(list.reverse()));
     });
 
+    const unsubOrders = onSnapshot(collection(db, "orders"), (snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+      dispatch(setOrdersRealTime(list)); // Redux-ga buyurtmalarni saqlaymiz
+    });
+
     return () => {
       unsubProducts();
       unsubRooms();
       unsubTables();
+      unsubOrders();
     };
   }, [dispatch]);
 }

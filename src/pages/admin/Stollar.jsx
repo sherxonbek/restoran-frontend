@@ -9,6 +9,8 @@ function Stollar({ navg }) {
     const dispatch = useDispatch();
 
     const { rooms, tables, loading } = useSelector((state) => state.rooms);
+    const { orders } = useSelector((state) => state.rooms);
+
 
     const joriyXona = rooms.find((r) => String(r.id) === String(roomId));
 
@@ -43,8 +45,11 @@ function Stollar({ navg }) {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {xonaStollari.map((table) => {
                         const tozaStolNomi = table.name && table.name.includes("/")
-                            ? table.name.split("/")?.[1]?.trim() 
+                            ? table.name.split("/")?.[1]?.trim()
                             : table.name || "Nomsiz Stol";
+                        const stoldaBuyurtmaBor = orders.some(
+                            (order) => String(order.tableId) === String(table.id) && order.status !== "yopildi"
+                        );
 
                         return (
                             <div
@@ -54,15 +59,15 @@ function Stollar({ navg }) {
                                         navigate(`/ofitsiant/buyurtma/xona/${roomId}/stol/${table.id}`);
                                     }
                                 }}
-                                className={`relative flex flex-col items-center justify-center p-6 border border-slate-800 bg-slate-900/50 rounded-2xl shadow-lg hover:border-indigo-500/40 transition-all duration-200 group ${
-                                    navg === '/ofitsiant' ? 'cursor-pointer' : ''
-                                }`}
+                                className={`relative flex flex-col items-center justify-center p-6 border border-slate-800 bg-slate-900/50 rounded-2xl shadow-lg hover:border-indigo-500/40 transition-all duration-200 group ${navg === '/ofitsiant' ? 'cursor-pointer' : ''
+                                    }`}
                             >
                                 <div className="text-3xl mb-2 select-none">🪑</div>
                                 <h4 className="font-mono text-sm font-bold text-slate-200">{tozaStolNomi}</h4>
 
-                                <span className="mt-2 px-2 py-0.5 text-[10px] font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 capitalize">
-                                    {table.status || "bo'sh"}
+                                <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded-full mb-2 ${stoldaBuyurtmaBor ? "bg-rose-500/20 text-rose-400" : "bg-slate-800 text-slate-400"
+                                    }`}>
+                                    {stoldaBuyurtmaBor ? "Band" : "Bo'sh"}
                                 </span>
 
                                 {navg === '/admin/xonalar' && (

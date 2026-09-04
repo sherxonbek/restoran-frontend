@@ -1,11 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { db } from "../firebase";
-import { 
-    collection, 
-    addDoc, 
-    doc, 
-    deleteDoc, 
-    runTransaction 
+import {
+    collection,
+    addDoc,
+    doc,
+    deleteDoc,
+    runTransaction
 } from "firebase/firestore";
 
 export const addRoom = createAsyncThunk("rooms/addRoom", async (newRoomsList, { rejectWithValue }) => {
@@ -83,6 +83,7 @@ const dataSlice = createSlice({
     initialState: {
         rooms: [],
         tables: [],
+        orders: [],
         loading: false,
         error: null,
     },
@@ -94,6 +95,9 @@ const dataSlice = createSlice({
         setTablesRealTime: (state, action) => {
             state.tables = action.payload;
             state.loading = false;
+        },
+        setOrdersRealTime: (state, action) => { // <-- QO'SHILDI
+            state.orders = action.payload;
         }
     },
     extraReducers: (builder) => {
@@ -113,5 +117,5 @@ const dataSlice = createSlice({
     },
 });
 
-export const { setRoomsRealTime, setTablesRealTime } = dataSlice.actions;
+export const { setRoomsRealTime, setTablesRealTime, setOrdersRealTime } = dataSlice.actions;
 export default dataSlice.reducer;

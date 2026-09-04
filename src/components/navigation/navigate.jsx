@@ -14,6 +14,7 @@ import MaxsulotDetallari from "@/pages/admin/Sozlamalar/MaxsulotDetallari";
 import Homes from "@/pages/Ofitsiant/Home"
 import OfLayout from "./OfLayout";
 import OfitsiantBuyurtma from "@/pages/Ofitsiant/OfitsiantBuyurtma";
+import Buyurtmalar from "@/pages/Ofitsiant/Buyurtmalar";
 
 const router = createBrowserRouter([
   {
@@ -105,6 +106,14 @@ const router = createBrowserRouter([
       }
     ]
   },
+  {
+    path: '/ofitsiant/buyurtmalar',
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <Buyurtmalar />
+      </Suspense>
+    )
+  }
 ]);
 
 export default router;

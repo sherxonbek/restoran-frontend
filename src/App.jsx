@@ -5,8 +5,6 @@ import { useRealTimeData } from "./hooks/useRealTimeData";
 function App() {
 
   useRealTimeData();
-
-
   return (
     <div>
       <div
