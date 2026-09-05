@@ -5,7 +5,8 @@ import {
     addDoc,
     doc,
     deleteDoc,
-    runTransaction
+    runTransaction,
+    getDoc
 } from "firebase/firestore";
 
 export const addRoom = createAsyncThunk("rooms/addRoom", async (newRoomsList, { rejectWithValue }) => {
@@ -78,6 +79,12 @@ export const deleteTable = createAsyncThunk(
     }
 );
 
+//fetch orders
+export const fetchOrders = createAsyncThunk("rooms/fetchOrders", async () => {
+    const response = await getDoc(collection(db, "orders"));
+    return response.data;
+});
+
 const dataSlice = createSlice({
     name: "rooms",
     initialState: {
@@ -96,8 +103,9 @@ const dataSlice = createSlice({
             state.tables = action.payload;
             state.loading = false;
         },
-        setOrdersRealTime: (state, action) => { // <-- QO'SHILDI
+        setOrdersRealTime: (state, action) => {
             state.orders = action.payload;
+            state.loading = false;
         }
     },
     extraReducers: (builder) => {
@@ -113,6 +121,20 @@ const dataSlice = createSlice({
             })
             .addCase(deleteTable.rejected, (state, action) => {
                 state.error = action.payload;
+            })
+
+            // Fetch orders
+            .addCase(fetchOrders.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchOrders.fulfilled, (state, action) => {
+                state.loading = false;
+                state.orders = action.payload;
+            })
+            .addCase(fetchOrders.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message;
             });
     },
 });

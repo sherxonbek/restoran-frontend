@@ -30,7 +30,7 @@ export function useRealTimeData() {
     const unsubOrders = onSnapshot(collection(db, "orders"), (snapshot) => {
       const list = [];
       snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-      dispatch(setOrdersRealTime(list)); // Redux-ga buyurtmalarni saqlaymiz
+      dispatch(setOrdersRealTime(list));
     });
 
     return () => {
