@@ -37,6 +37,14 @@ function Xodimlar() {
     return password;
   };
 
+  const handleGeneratePassword = () => {
+    const newPass = generateUniquePassword();
+    setEmployeeForm((prev) => ({
+      ...prev,
+      password: newPass,
+    }));
+  };
+
   const handlePhoneChange = (e) => {
     const formatted = formatUzbekPhoneNumber(
       e.target.value,
@@ -174,20 +182,15 @@ function Xodimlar() {
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    setEmployeeForm({
-                      ...employeeForm,
-                      password: generateUniquePassword(),
-                    })
-                  }
-                  className="px-3 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl border border-slate-700 transition-colors whitespace-nowrap cursor-pointer"
+                  onClick={handleGeneratePassword}
+                  className="px-3.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl border border-slate-700 transition-colors whitespace-nowrap cursor-pointer"
                 >
                   Yaratish
                 </button>
               </div>
-              {employeeForm.password && (
+              {Boolean(employeeForm.password?.trim()) && (
                 <div className="mt-2 flex justify-end">
-                  <CopyButton textToCopy={employeeForm.password} />
+                  <CopyButton text={employeeForm.password} textToCopy={employeeForm.password} />
                 </div>
               )}
             </div>

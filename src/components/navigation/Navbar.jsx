@@ -6,7 +6,11 @@ import { Bell } from 'lucide-react'
 export default function Navbar() {
   const location = useLocation()
 
-  const activeItem = menuItems.find(item => item.url === location.pathname)
+  const activeItem = menuItems.find(
+    (item) =>
+      item.url === location.pathname ||
+      (item.url !== "/admin" && location.pathname.startsWith(item.url))
+  )
   const currentTitle = activeItem ? activeItem.name : 'Restoran'
 
   return (

@@ -8,10 +8,6 @@ import {
   CakeSlice,
   Utensils,
   GalleryHorizontalEnd,
-  ArrowLeft,
-  Plus,
-  Search,
-  X,
 } from "lucide-react";
 
 import { addProduct } from "@/store/slices/productSlice";
@@ -19,6 +15,9 @@ import { useToast } from "@/hooks/useToast";
 import ProductCategoryTabs from "@/components/admin/mahsulotlar/ProductCategoryTabs";
 import ProductGrid from "@/components/admin/mahsulotlar/ProductGrid";
 import AddProductModal from "@/components/admin/mahsulotlar/AddProductModal";
+import BackButton from "@/components/ui/BackButton";
+import SearchInput from "@/components/ui/SearchInput";
+import HeaderAddButton from "@/components/ui/HeaderAddButton";
 
 const CATEGORY_ICONS = {
   ichimliklar: <Martini size={18} />,
@@ -110,66 +109,36 @@ function Maxsulotlar() {
         </div>
       )}
 
-      {/* 1. Header Banner va boshqaruv */}
-      <div className="relative p-5 sm:p-6 rounded-3xl bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-2xl overflow-hidden">
+      {/* 1. Header boshqaruv paneli (Ortga, Qidiruv, Qo'shish) */}
+      <div className="relative p-4 sm:p-5 rounded-3xl bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-2xl overflow-hidden">
         <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative z-10 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+          {/* Ortga qaytish */}
+          <BackButton className="order-1" />
 
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate("/admin/sozlamalar")}
-              className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-all cursor-pointer group"
-              title="Sozlamalarga qaytish"
-            >
-              <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
-            </button>
+          {/* O'rtadagi qidiruv inputi */}
+          <SearchInput
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onClear={() => setSearchQuery("")}
+            className="order-3 sm:order-2 w-full sm:flex-1 sm:max-w-xl"
+          />
 
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all cursor-pointer w-full sm:w-auto"
-            >
-              <Plus size={16} />
-              Yangi Taom Qo'shish
-            </button>
-          </div>
+          {/* Yangi Taom Qo'shish */}
+          <HeaderAddButton
+            onClick={() => setIsModalOpen(true)}
+            className="order-2 sm:order-3"
+          />
         </div>
       </div>
 
-      {/* 2. Qidiruv va Filtr paneli */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {/* Qidiruv input */}
-          <div className="relative flex-1 max-w-md">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Taom yoki kategoriya nomini qidiring..."
-              className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all backdrop-blur-xl"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Kategoriyalar gorizontal tablari */}
-        <ProductCategoryTabs
-          categories={dinamikKategoriyalar}
-          activeCategory={activeCategory}
-          onSelectCategory={(cat) => setActiveCategory(cat)}
-        />
-      </div>
+      {/* 2. Kategoriyalar gorizontal tablari */}
+      <ProductCategoryTabs
+        categories={dinamikKategoriyalar}
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+      />
 
       {/* 3. Mahsulotlar ro'yxati (Grid) */}
       {products.length > 0 ? (
