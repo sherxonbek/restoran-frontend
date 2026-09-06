@@ -1,5 +1,6 @@
 import { CalendarDays, DollarSign, ListOrdered, TrendingDown, TrendingUp } from "lucide-react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
+import { useSelector } from "react-redux"
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -12,32 +13,112 @@ import {
   Legend
 } from "recharts"
 
+const parseDate = (val) => {
+  if (!val) return null
+  if (typeof val?.toDate === "function") return val.toDate()
+  if (val?.seconds) return new Date(val.seconds * 1000)
+  const d = new Date(val)
+  return isNaN(d.getTime()) ? null : d
+}
+
+const formatShortNumber = (val) => {
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)} M`
+  if (val >= 1_000) return `${(val / 1_000).toFixed(0)} k`
+  return `${val}`
+}
+
 function Statistika() {
   const [isOpen, setIsOpen] = useState("kirm")
   const [vaqtTuri, setVaqtTuri] = useState("hafta")
   const [chiqimTuri, setChiqimTuri] = useState("mahsulot")
 
+  const { orders = [] } = useSelector((state) => state.orders)
+  const { users = [] } = useSelector((state) => state.users)
 
-  const haftalikMaLumot = [
-    { kun: "Dush", daromad: 1200000, buyurtmalar: 45 },
-    { kun: "Sesh", daromad: 1500000, buyurtmalar: 52 },
-    { kun: "Chor", daromad: 950000, buyurtmalar: 38 },
-    { kun: "Pay", daromad: 1800000, buyurtmalar: 60 },
-    { kun: "Jum", daromad: 2500000, buyurtmalar: 85 },
-    { kun: "Shan", daromad: 3200000, buyurtmalar: 110 },
-    { kun: "Yak", daromad: 2800000, buyurtmalar: 95 },
-  ]
+  // Haftalik hisob-kitob (Dush - Yak)
+  const haftalikMaLumot = useMemo(() => {
+    const now = new Date()
+    const currentDay = now.getDay()
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay
+    const monday = new Date(now)
+    monday.setDate(now.getDate() + distanceToMonday)
+    monday.setHours(0, 0, 0, 0)
 
-  const oylikMaLumot = [
-    { kun: "1-Hafta", daromad: 8500000, buyurtmalar: 280 },
-    { kun: "2-Hafta", daromad: 11200000, buyurtmalar: 340 },
-    { kun: "3-Hafta", daromad: 9800000, buyurtmalar: 310 },
-    { kun: "4-Hafta", daromad: 14500000, buyurtmalar: 420 },
-  ]
+    const sundayEnd = new Date(monday)
+    sundayEnd.setDate(monday.getDate() + 7)
+
+    const weekDays = [
+      { dayIndex: 1, kun: "Dush", daromad: 0, buyurtmalar: 0 },
+      { dayIndex: 2, kun: "Sesh", daromad: 0, buyurtmalar: 0 },
+      { dayIndex: 3, kun: "Chor", daromad: 0, buyurtmalar: 0 },
+      { dayIndex: 4, kun: "Pay", daromad: 0, buyurtmalar: 0 },
+      { dayIndex: 5, kun: "Jum", daromad: 0, buyurtmalar: 0 },
+      { dayIndex: 6, kun: "Shan", daromad: 0, buyurtmalar: 0 },
+      { dayIndex: 0, kun: "Yak", daromad: 0, buyurtmalar: 0 },
+    ]
+
+    orders.forEach((o) => {
+      if (o.status === "bekor") return
+      const d = parseDate(o.createdAt)
+      if (!d) return
+      if (d >= monday && d < sundayEnd) {
+        const day = d.getDay()
+        const target = weekDays.find((w) => w.dayIndex === day)
+        if (target) {
+          target.daromad += Number(o.totalPrice) || 0
+          target.buyurtmalar += 1
+        }
+      }
+    })
+
+    return weekDays.map(({ kun, daromad, buyurtmalar }) => ({ kun, daromad, buyurtmalar }))
+  }, [orders])
+
+  // Oylik hisob-kitob (Haftalar kesimida)
+  const oylikMaLumot = useMemo(() => {
+    const now = new Date()
+    const currentMonth = now.getMonth()
+    const currentYear = now.getFullYear()
+
+    const monthWeeks = [
+      { kun: "1-Hafta", daromad: 0, buyurtmalar: 0, minD: 1, maxD: 7 },
+      { kun: "2-Hafta", daromad: 0, buyurtmalar: 0, minD: 8, maxD: 14 },
+      { kun: "3-Hafta", daromad: 0, buyurtmalar: 0, minD: 15, maxD: 21 },
+      { kun: "4-Hafta", daromad: 0, buyurtmalar: 0, minD: 22, maxD: 32 },
+    ]
+
+    orders.forEach((o) => {
+      if (o.status === "bekor") return
+      const d = parseDate(o.createdAt)
+      if (!d) return
+      if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+        const day = d.getDate()
+        const target = monthWeeks.find((w) => day >= w.minD && day <= w.maxD)
+        if (target) {
+          target.daromad += Number(o.totalPrice) || 0
+          target.buyurtmalar += 1
+        }
+      }
+    })
+
+    return monthWeeks.map(({ kun, daromad, buyurtmalar }) => ({ kun, daromad, buyurtmalar }))
+  }, [orders])
 
   const grafikMaLumoti = vaqtTuri === "hafta" ? haftalikMaLumot : oylikMaLumot
 
-  const formatUzSum = (val) => `${(val / 1000).toLocaleString()} k`
+  const jamiDaromad = useMemo(() => {
+    return grafikMaLumoti.reduce((acc, curr) => acc + curr.daromad, 0)
+  }, [grafikMaLumoti])
+
+  const jamiBuyurtmalar = useMemo(() => {
+    return grafikMaLumoti.reduce((acc, curr) => acc + curr.buyurtmalar, 0)
+  }, [grafikMaLumoti])
+
+  const formatUzSum = (val) => {
+    if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)} M`
+    if (val >= 1_000) return `${(val / 1_000).toFixed(0)} k`
+    return `${val}`
+  }
 
   return (
     <div className="p-4 space-y-6 text-white  mb-15">
@@ -94,7 +175,7 @@ function Statistika() {
                 <DollarSign className="text-green-500" />
                 <div className="text-left">
                   <h1 className="text-lg">
-                    {vaqtTuri === "hafta" ? "15.1 M" : "44.0 M"}
+                    {formatShortNumber(jamiDaromad)}
                   </h1>
                   <p className="text-xs text-zinc-400">Daromad (so'm)</p>
                 </div>
@@ -103,7 +184,7 @@ function Statistika() {
                 <ListOrdered className="text-yellow-500" />
                 <div className="text-left">
                   <h1 className="text-lg">
-                    {vaqtTuri === "hafta" ? "485" : "1,350"}
+                    {jamiBuyurtmalar.toLocaleString("uz-UZ")}
                   </h1>
                   <p className="text-xs text-zinc-400">Buyurtmalar</p>
                 </div>
@@ -212,7 +293,9 @@ function Statistika() {
                   </div>
                   <div className="flex border py-3 rounded-xl items-center justify-center gap-3 bg-zinc-900/60 border-zinc-800/80 text-md font-bold">
                     <div className="text-left">
-                      <h1 className="text-lg">8 nafar</h1>
+                      <h1 className="text-lg">
+                        {users.length > 0 ? `${users.length} nafar` : "0 nafar"}
+                      </h1>
                       <p className="text-xs text-zinc-400">Xodimlar soni</p>
                     </div>
                   </div>

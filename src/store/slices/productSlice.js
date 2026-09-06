@@ -1,11 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { db } from "@/services/firebase";
-import { collection, addDoc, doc, updateDoc, deleteDoc, getDoc } from "firebase/firestore";
-
+import { collection, addDoc, doc, updateDoc, deleteDoc, getDoc, getDocs } from "firebase/firestore";
 
 export const fetchProducts = createAsyncThunk("products/fetchProducts", async () => {
-    const response = await getDoc(collection(db, "products"));
-    return response.data;
+    const querySnapshot = await getDocs(collection(db, "products"));
+    const list = [];
+    querySnapshot.forEach((d) => {
+        list.push({ id: d.id, ...d.data() });
+    });
+    return list;
 });
 
 export const getProduct = createAsyncThunk("products/getProduct", async (productId, { rejectWithValue }) => {
@@ -43,12 +46,13 @@ const productSlice = createSlice({
     name: "products",
     initialState: {
         products: [],
+        selectedProduct: null,
         loading: false,
         error: null,
     },
     reducers: {
         setProductsRealTime: (state, action) => {
-            state.products = action.payload;
+            state.products = Array.isArray(action.payload) ? action.payload : [];
             state.loading = false;
         }
     },
@@ -60,51 +64,68 @@ const productSlice = createSlice({
             })
             .addCase(fetchProducts.fulfilled, (state, action) => {
                 state.loading = false;
-                state.products = action.payload;
+                state.products = Array.isArray(action.payload) ? action.payload : [];
             })
             .addCase(fetchProducts.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message;
+                state.error = action.error?.message || "Xatolik yuz berdi";
             })
 
+            .addCase(addProduct.fulfilled, (state, action) => {
+                state.loading = false;
+                if (Array.isArray(state.products)) {
+                    state.products.push(action.payload);
+                }
+            })
             .addCase(addProduct.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.payload;
             })
 
             .addCase(deleteProduct.fulfilled, (state, action) => {
-                state.products = action.payload;
-
+                state.loading = false;
+                if (Array.isArray(state.products)) {
+                    state.products = state.products.filter((p) => p.id !== action.payload);
+                }
+                state.selectedProduct = null;
             })
             .addCase(deleteProduct.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.payload;
             })
 
-            //maxsulotni id orqali olish
+            // maxsulotni id orqali olish (faqat selectedProduct ni yangilaydi, products massivini buzmaydi)
             .addCase(getProduct.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(getProduct.fulfilled, (state, action) => {
                 state.loading = false;
-                state.products = action.payload;
+                state.selectedProduct = action.payload;
             })
             .addCase(getProduct.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.payload;
             })
 
-            //maxsulotni yangilash
+            // maxsulotni yangilash
             .addCase(updateProduct.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(updateProduct.fulfilled, (state, action) => {
                 state.loading = false;
-                state.products = action.payload;
+                state.selectedProduct = action.payload;
+                if (Array.isArray(state.products)) {
+                    state.products = state.products.map((p) =>
+                        p.id === action.payload.id ? action.payload : p
+                    );
+                }
             })
             .addCase(updateProduct.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-            })
+            });
     },
 });
 

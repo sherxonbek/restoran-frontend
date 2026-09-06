@@ -12,3 +12,21 @@ export const formatUzbekPhoneNumber = (input) => {
 
   return formatted;
 };
+
+/**
+ * Stol nomidan xona nomini ajratib, toza stol nomini qaytaradi
+ * Masalan: "Xona 1 / 2-stol" -> "2-stol"
+ */
+export const formatTableName = (name, fallbackId) => {
+  if (!name) return fallbackId ? `№${fallbackId}` : "Nomsiz stol";
+  return name.includes("/") ? name.split("/")[1]?.trim() : name;
+};
+
+/**
+ * Pul miqdorini o'zbek so'mi formatida chiqaradi
+ * Masalan: 35000 -> "35,000 so'm"
+ */
+export const formatCurrency = (amount) => {
+  if (amount === undefined || amount === null || isNaN(amount)) return "0 so'm";
+  return `${Number(amount).toLocaleString()} so'm`;
+};

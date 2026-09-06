@@ -15,11 +15,38 @@ import Homes from "@/pages/ofitsiant/Home";
 import OfitsiantLayout from "@/components/navigation/OfitsiantLayout";
 import OfitsiantBuyurtma from "@/pages/ofitsiant/OfitsiantBuyurtma";
 import Buyurtmalar from "@/pages/ofitsiant/Buyurtmalar";
+import HomeGreeting from "@/pages/HomeGreeting";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 const router = createBrowserRouter([
+  // 1. Asosiy ildiz marshruti - vaqtinchalik Salom
   {
-    path: '/',
-    element: <MainLayout />,
+    path: "/",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <HomeGreeting />
+      </Suspense>
+    ),
+  },
+
+  // 2. Tizimga kirish (Login)
+  {
+    path: "/auth/login",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <Login />
+      </Suspense>
+    ),
+  },
+
+  // 3. Admin marshrutlari (/admin/...) - faqat adminlar uchun
+  {
+    path: "/admin",
+    element: (
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -27,93 +54,90 @@ const router = createBrowserRouter([
           <Suspense fallback={<LoadingSpinner />}>
             <Home />
           </Suspense>
-        )
+        ),
       },
       {
-        path: 'admin/xodimlar',
+        path: "xodimlar",
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <Xodimlar />
           </Suspense>
-        )
+        ),
       },
       {
-        path: 'admin/xonalar',
+        path: "xonalar",
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <Xonalar />
           </Suspense>
-        )
+        ),
       },
       {
-        path: 'admin/xonalar/:roomId',
-        element: <Stollar navg={'/admin/xonalar'} />
+        path: "xonalar/:roomId",
+        element: <Stollar navg={"/admin/xonalar"} />,
       },
       {
-        path: 'admin/statistika',
+        path: "statistika",
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <Statistika />
           </Suspense>
-        )
+        ),
       },
       {
-        path: 'admin/sozlamalar',
+        path: "sozlamalar",
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <Sozlamalar />
           </Suspense>
-        )
+        ),
       },
       {
-        path: 'admin/sozlamalar/maxsulotlar',
+        path: "sozlamalar/maxsulotlar",
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <Maxsulotlar />
           </Suspense>
-        )
+        ),
       },
       {
-        path: 'admin/maxsulotlar/:productId',
-        element: <MaxsulotDetallari />
+        path: "maxsulotlar/:productId",
+        element: <MaxsulotDetallari />,
       },
     ],
   },
+
+  // 4. Ofitsiant marshrutlari (/ofitsiant/...) - ofitsiant va admin uchun
   {
-    path: '/auth/login',
+    path: "/ofitsiant",
     element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        <Login />
-      </Suspense>
+      <ProtectedRoute allowedRoles={["ofitsiant", "admin"]}>
+        <OfitsiantLayout />
+      </ProtectedRoute>
     ),
-  },
-  //afitsant pages navigator
-  {
-    path: 'ofitsiant/',
-    element: <OfitsiantLayout />,
     children: [
       {
         index: true,
-        element: <Homes />
+        element: <Homes />,
       },
       {
-        path: 'xona/:roomId',
-        element: <Stollar navg={'/ofitsiant'} />
+        path: "xona/:roomId",
+        element: <Stollar navg={"/ofitsiant"} />,
       },
       {
-        path: 'buyurtma/xona/:roomId/stol/:tableId', // Xona va Stol ID birga keladi
-        element: <OfitsiantBuyurtma />
-      }
-    ]
+        path: "buyurtma/xona/:roomId/stol/:tableId",
+        element: <OfitsiantBuyurtma />,
+      },
+      {
+        path: "buyurtmalar",
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Buyurtmalar />
+          </Suspense>
+        ),
+      },
+    ],
   },
-  {
-    path: '/ofitsiant/buyurtmalar',
-    element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        <Buyurtmalar />
-      </Suspense>
-    )
-  }
 ]);
 
 export default router;
