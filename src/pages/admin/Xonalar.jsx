@@ -1,5 +1,5 @@
 import { AddBtn } from "@/components/ui/AddButton";
-import { addRoom, addTables, deleteRoom} from "@/server/Slice/roomSlice";
+import { addRoom, addTables, deleteRoom } from "@/store/slices/roomSlice";
 import { Grip, House, Landmark, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";

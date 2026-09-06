@@ -1,4 +1,4 @@
-import router from "./components/navigation/navigate";
+import router from "./routes";
 import { RouterProvider } from 'react-router-dom';
 import { useRealTimeData } from "./hooks/useRealTimeData";
 

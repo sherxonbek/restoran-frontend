@@ -3,7 +3,7 @@ import { useState } from "react"
 import { User, Phone, Briefcase, Trash2 } from "lucide-react"
 import { formatUzbekPhoneNumber } from "@/utils/formatters"
 import { useDispatch, useSelector } from "react-redux";
-import { addUser, deleteUser } from "@/server/Slice/userSlice";
+import { addUser, deleteUser } from "@/store/slices/userSlice";
 import CopyButton from "@/components/ui/CopyButton";
 
 function Xodimlar() {

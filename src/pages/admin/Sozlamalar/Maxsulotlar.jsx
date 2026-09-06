@@ -1,7 +1,7 @@
 import { Hamburger, Martini, Salad, CakeSlice, Utensils, GalleryHorizontalEnd, DollarSign } from "lucide-react"
 import { useState } from "react"
 import { useDispatch, useSelector } from "react-redux";
-import { addProduct } from "@/server/Slice/productSlice"; // thunk import qilindi
+import { addProduct } from "@/store/slices/productSlice"; // thunk import qilindi
 import Card from "./Card";
 
 

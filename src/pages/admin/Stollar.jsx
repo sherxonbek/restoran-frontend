@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { deleteTable } from "@/server/Slice/roomSlice";
+import { deleteTable } from "@/store/slices/roomSlice";
 import { ArrowLeft, Trash2 } from "lucide-react";
 
 function Stollar({ navg }) {

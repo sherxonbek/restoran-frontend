@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom"
 import OfitsiantNavbar from "./OfitsiantNavbar"
 
-function OfLayout() {
+function OfitsiantLayout() {
     return (
         <div className="flex flex-col h-screen w-full justify-between overflow-hidden">
             <OfitsiantNavbar />
@@ -14,4 +14,4 @@ function OfLayout() {
     )
 }
 
-export default OfLayout
+export default OfitsiantLayout

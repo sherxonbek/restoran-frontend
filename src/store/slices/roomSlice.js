@@ -1,12 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { db } from "../firebase";
+import { db } from "@/services/firebase";
 import {
     collection,
     addDoc,
     doc,
     deleteDoc,
-    runTransaction,
-    getDoc
+    runTransaction
 } from "firebase/firestore";
 
 export const addRoom = createAsyncThunk("rooms/addRoom", async (newRoomsList, { rejectWithValue }) => {
@@ -79,18 +78,11 @@ export const deleteTable = createAsyncThunk(
     }
 );
 
-//fetch orders
-export const fetchOrders = createAsyncThunk("rooms/fetchOrders", async () => {
-    const response = await getDoc(collection(db, "orders"));
-    return response.data;
-});
-
 const dataSlice = createSlice({
     name: "rooms",
     initialState: {
         rooms: [],
         tables: [],
-        orders: [],
         loading: false,
         error: null,
     },
@@ -101,10 +93,6 @@ const dataSlice = createSlice({
         },
         setTablesRealTime: (state, action) => {
             state.tables = action.payload;
-            state.loading = false;
-        },
-        setOrdersRealTime: (state, action) => {
-            state.orders = action.payload;
             state.loading = false;
         }
     },
@@ -121,23 +109,9 @@ const dataSlice = createSlice({
             })
             .addCase(deleteTable.rejected, (state, action) => {
                 state.error = action.payload;
-            })
-
-            // Fetch orders
-            .addCase(fetchOrders.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(fetchOrders.fulfilled, (state, action) => {
-                state.loading = false;
-                state.orders = action.payload;
-            })
-            .addCase(fetchOrders.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.error.message;
             });
     },
 });
 
-export const { setRoomsRealTime, setTablesRealTime, setOrdersRealTime } = dataSlice.actions;
+export const { setRoomsRealTime, setTablesRealTime } = dataSlice.actions;
 export default dataSlice.reducer;

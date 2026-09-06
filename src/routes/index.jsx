@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
-import MainLayout from "./MainLayout";
+import MainLayout from "@/components/navigation/MainLayout";
 import { Suspense } from "react";
-import LoadingSpinner from "../ui/LoadingSpinner";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import Xodimlar from "@/pages/admin/Xodimlar";
 import Xonalar from "@/pages/admin/Xonalar";
 import Statistika from "@/pages/admin/Statistika";
@@ -11,10 +11,10 @@ import Login from "@/pages/auth/Login";
 import Home from "@/pages/admin/Home";
 import Stollar from "@/pages/admin/Stollar";
 import MaxsulotDetallari from "@/pages/admin/Sozlamalar/MaxsulotDetallari";
-import Homes from "@/pages/Ofitsiant/Home"
-import OfLayout from "./OfLayout";
-import OfitsiantBuyurtma from "@/pages/Ofitsiant/OfitsiantBuyurtma";
-import Buyurtmalar from "@/pages/Ofitsiant/Buyurtmalar";
+import Homes from "@/pages/ofitsiant/Home";
+import OfitsiantLayout from "@/components/navigation/OfitsiantLayout";
+import OfitsiantBuyurtma from "@/pages/ofitsiant/OfitsiantBuyurtma";
+import Buyurtmalar from "@/pages/ofitsiant/Buyurtmalar";
 
 const router = createBrowserRouter([
   {
@@ -90,7 +90,7 @@ const router = createBrowserRouter([
   //afitsant pages navigator
   {
     path: 'ofitsiant/',
-    element: <OfLayout />,
+    element: <OfitsiantLayout />,
     children: [
       {
         index: true,

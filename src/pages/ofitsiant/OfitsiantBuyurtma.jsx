@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ShoppingBag, ChevronLeft, Plus, Minus, CheckCircle, ShoppingCart, Layers, X } from "lucide-react";
 import { useSelector } from "react-redux";
-import { db } from "@/server/firebase";
+import { db } from "@/services/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import Tasdiqlandi from "@/components/ui/Tasdiqlandi";
 
@@ -43,17 +43,6 @@ function OfitsiantBuyurtma() {
                     .filter(Boolean)
             )
         ];
-
-    // Har safar asosiy kategoriya o'zgarganda ichki kategoriyani ham "Hammasi" holatiga qaytaramiz
-    useEffect(() => {
-        if (activeCategory === "Hammasi") {
-            setActiveSubcategory("Hammasi");
-        } else if (mavjudSubKategoriyalar.length > 0) {
-            setActiveSubcategory("Hammasi");
-        } else {
-            setActiveSubcategory("");
-        }
-    }, [activeCategory, products]);
 
     const addToCart = (item) => {
         const existing = cart.find(cartItem => cartItem.id === item.id);
@@ -148,7 +137,10 @@ function OfitsiantBuyurtma() {
                         {mavjudKategoriyalar.map(cat => (
                             <button
                                 key={cat}
-                                onClick={() => setActiveCategory(cat)}
+                                onClick={() => {
+                                    setActiveCategory(cat);
+                                    setActiveSubcategory("Hammasi");
+                                }}
                                 className={`px-4 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-300 cursor-pointer border whitespace-nowrap shadow-sm ${activeCategory === cat
                                     ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30 scale-[1.02]'
                                     : 'bg-slate-900/80 border-slate-800/80 text-slate-400 hover:text-slate-200 hover:border-slate-700'

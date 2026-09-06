@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"; // useState qo'shildi
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { getProduct, updateProduct, deleteProduct } from "@/server/Slice/productSlice";
+import { getProduct, updateProduct, deleteProduct } from "@/store/slices/productSlice";
 import { CircleCheck, Trash, PenLine, X, Check } from "lucide-react"; // Yangi ikonalar
 
 function MaxsulotDetallari() {
@@ -11,25 +11,21 @@ function MaxsulotDetallari() {
     const { products, loading } = useSelector((state) => state.products);
 
     const [isEditing, setIsEditing] = useState(false);
-    const [editForm, setEditForm] = useState({ name: "", price: "", category: "", subcategory: "" });
+    const [customForm, setCustomForm] = useState(null);
     const [isDeleted, setIsDeleted] = useState(false);
+
+    const editForm = customForm || {
+        name: products?.name || "",
+        price: products?.price || "",
+        category: products?.category || "",
+        subcategory: products?.subcategory || "",
+    };
 
     useEffect(() => {
         if (productId) {
             dispatch(getProduct(productId));
         }
     }, [dispatch, productId]);
-
-    useEffect(() => {
-        if (products) {
-            setEditForm({
-                name: products.name || "",
-                price: products.price || "",
-                category: products.category || "",
-                subcategory: products.subcategory || "",
-            });
-        }
-    }, [products]);
 
     if (loading) {
         return (
@@ -44,13 +40,14 @@ function MaxsulotDetallari() {
     }
 
     const handleChange = (e) => {
-        setEditForm({ ...editForm, [e.target.name]: e.target.value });
+        setCustomForm({ ...editForm, [e.target.name]: e.target.value });
     };
 
     const handleSave = async () => {
         try {
             await dispatch(updateProduct({ id: productId, updatedData: editForm })).unwrap();
             setIsEditing(false);
+            setCustomForm(null);
         } catch (error) {
             console.error("Yangilashda xatolik:", error);
             alert("Ma'lumotni saqlab bo'lmadi. Qaytadan urinib ko'ring!");
@@ -118,7 +115,7 @@ function MaxsulotDetallari() {
                         <button onClick={handleSave} className="flex items-center gap-2 font-bold text-xl border px-4 py-2 rounded-2xl bg-green-600 btn-shadow">
                             <Check size={20} /> Save
                         </button>
-                        <button onClick={() => setIsEditing(false)} className="flex items-center gap-2 font-bold text-xl border px-4 py-2 rounded-2xl bg-gray-600 btn-shadow">
+                        <button onClick={() => { setIsEditing(false); setCustomForm(null); }} className="flex items-center gap-2 font-bold text-xl border px-4 py-2 rounded-2xl bg-gray-600 btn-shadow">
                             <X size={20} /> Cancel
                         </button>
                     </>

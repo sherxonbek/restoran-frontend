@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { db } from "@/server/firebase";
+import { db } from "@/services/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
-import { setProductsRealTime } from "@/server/Slice/productSlice";
-import { setOrdersRealTime, setRoomsRealTime, setTablesRealTime } from "@/server/Slice/roomSlice";
+import { setProductsRealTime } from "@/store/slices/productSlice";
+import { setOrdersRealTime, setRoomsRealTime, setTablesRealTime } from "@/store/slices/roomSlice";
 
 export function useRealTimeData() {
   const dispatch = useDispatch();
