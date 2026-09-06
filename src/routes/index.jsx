@@ -11,6 +11,7 @@ import Login from "@/pages/auth/Login";
 import Home from "@/pages/admin/Home";
 import Stollar from "@/pages/admin/Stollar";
 import MaxsulotDetallari from "@/pages/admin/Sozlamalar/MaxsulotDetallari";
+import Ombor from "@/pages/admin/Ombor";
 import Homes from "@/pages/ofitsiant/Home";
 import OfitsiantLayout from "@/components/navigation/OfitsiantLayout";
 import OfitsiantBuyurtma from "@/pages/ofitsiant/OfitsiantBuyurtma";
@@ -97,6 +98,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingSpinner />}>
             <Maxsulotlar />
+          </Suspense>
+        ),
+      },
+      {
+        path: "ombor",
+        element: (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Ombor />
           </Suspense>
         ),
       },

@@ -27,6 +27,7 @@ export default function Sidebar() {
 
   const { currentUser } = useSelector((state) => state.users);
   const { products = [] } = useSelector((state) => state.products);
+  const { items: inventoryItems = [] } = useSelector((state) => state.inventory);
 
   const { toast, showToast } = useToast();
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
@@ -96,8 +97,8 @@ export default function Sidebar() {
       id: "inventory",
       name: "Omborxona (Zaxira)",
       icon: Package,
-      action: () => handleComingSoon("Omborxona (Zaxira)"),
-      isComingSoon: true,
+      url: "/admin/ombor",
+      badge: `${inventoryItems.length}`,
     },
     {
       id: "salaries",

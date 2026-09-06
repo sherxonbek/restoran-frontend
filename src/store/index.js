@@ -3,6 +3,7 @@ import userSlice from "./slices/userSlice";
 import roomSlice from "./slices/roomSlice";
 import productSlice from "./slices/productSlice";
 import orderSlice from "./slices/orderSlice";
+import inventorySlice from "./slices/inventorySlice";
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     rooms: roomSlice,
     products: productSlice,
     orders: orderSlice,
+    inventory: inventorySlice,
   },
 });
 

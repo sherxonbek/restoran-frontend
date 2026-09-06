@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/useToast"
 
 function Sozlamalar() {
   const { products = [] } = useSelector((state) => state.products)
+  const { items: inventoryItems = [] } = useSelector((state) => state.inventory)
 
   const { toast, showToast } = useToast()
 
@@ -120,8 +121,8 @@ function Sozlamalar() {
           </Link>
 
           {/* Zaxira maxsulotlar */}
-          <div
-            onClick={() => handleComingSoon("Zaxira mahsulotlar (Omborxona)")}
+          <Link
+            to="/admin/ombor"
             className="flex items-center justify-between p-5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-xl hover:border-amber-500/50 hover:bg-slate-900/80 transition-all duration-300 group cursor-pointer"
           >
             <div className="flex items-center gap-3.5 min-w-0">
@@ -135,8 +136,8 @@ function Sozlamalar() {
                   </h3>
                 </div>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full">
-                    Tez kunda
+                  <span className="text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-mono">
+                    {inventoryItems.length} xil xom-ashyo
                   </span>
                 </div>
               </div>
@@ -144,7 +145,7 @@ function Sozlamalar() {
             <div className="p-2 rounded-xl text-slate-500 group-hover:text-amber-400 group-hover:translate-x-1 transition-all shrink-0">
               <ChevronRight size={18} />
             </div>
-          </div>
+          </Link>
 
           {/* Oylik maoshlari */}
           <div
