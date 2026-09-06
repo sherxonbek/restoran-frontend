@@ -9,7 +9,7 @@ function Stollar({ navg }) {
     const dispatch = useDispatch();
 
     const { rooms, tables, loading } = useSelector((state) => state.rooms);
-    const { orders } = useSelector((state) => state.rooms);
+    const { orders } = useSelector((state) => state.orders);
 
 
     const joriyXona = rooms.find((r) => String(r.id) === String(roomId));
