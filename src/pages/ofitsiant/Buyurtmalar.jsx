@@ -8,6 +8,9 @@ import {
     MapPin,
     UtensilsCrossed,
     CheckCircle2,
+    Receipt,
+    Banknote,
+    Check,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { doc, updateDoc } from "firebase/firestore";
@@ -84,6 +87,124 @@ function BuyurtmalarHeader() {
         return tableName;
     };
 
+    const [settlingKey, setSettlingKey] = useState(null);
+
+    // Payments uchun: bitta stoldan tushgan bir nechta buyurtmalar alohida emas,
+    // aynan o'sha manzil (stol) bo'yicha bitta elektron chekga jamlanadi.
+    const tablePayments = useMemo(() => {
+        if (!Array.isArray(orders)) return [];
+
+        const groups = {};
+
+        orders.forEach((o) => {
+            if (o.status === "bekor_qilindi" || o.status === "bekor") return;
+
+            // Faqat joriy ofitsiantning buyurtmalari
+            const matchId = currentUserId && o.waiterId && String(o.waiterId) === String(currentUserId);
+            const matchName = currentUserName && o.waiterName && o.waiterName.trim().toLowerCase() === currentUserName.trim().toLowerCase();
+            if (o.waiterId && currentUserId && String(o.waiterId) !== String(currentUserId)) return;
+            if (o.waiterName && currentUserName && o.waiterName.trim().toLowerCase() !== currentUserName.trim().toLowerCase()) return;
+            if (!matchId && !matchName && (o.waiterId || o.waiterName)) return;
+
+            // Xona va stol bo'yicha yagona kalit
+            const tableKey = `${o.roomId || "room"}_${o.tableId || o.tableName || "table"}`;
+            const locationName = getLocation(o);
+
+            if (!groups[tableKey]) {
+                groups[tableKey] = {
+                    key: tableKey,
+                    roomId: o.roomId,
+                    roomName: o.roomName,
+                    tableId: o.tableId,
+                    tableName: o.tableName,
+                    locationName,
+                    orderIds: [],
+                    ordersCount: 0,
+                    firstCreatedAt: o.createdAt,
+                    lastCreatedAt: o.createdAt,
+                    waiterName: o.waiterName || currentUserName,
+                    itemsMap: {},
+                    totalPrice: 0,
+                    hasUnpaid: false,
+                };
+            }
+
+            const g = groups[tableKey];
+            g.orderIds.push(o.id);
+            g.ordersCount += 1;
+
+            if (o.status !== "tolandi" && o.status !== "yopildi") {
+                g.hasUnpaid = true;
+            }
+
+            if (o.createdAt) {
+                if (!g.firstCreatedAt || new Date(o.createdAt) < new Date(g.firstCreatedAt)) {
+                    g.firstCreatedAt = o.createdAt;
+                }
+                if (!g.lastCreatedAt || new Date(o.createdAt) > new Date(g.lastCreatedAt)) {
+                    g.lastCreatedAt = o.createdAt;
+                }
+            }
+
+            if (Array.isArray(o.items)) {
+                o.items.forEach((item) => {
+                    const dishKey = `${item.id || item.name}_${item.price}`;
+                    const qty = Number(item.quantity) || 1;
+                    const price = Number(item.price) || 0;
+
+                    if (!g.itemsMap[dishKey]) {
+                        g.itemsMap[dishKey] = {
+                            id: item.id || dishKey,
+                            name: item.name,
+                            price,
+                            quantity: 0,
+                            total: 0,
+                        };
+                    }
+                    g.itemsMap[dishKey].quantity += qty;
+                    g.itemsMap[dishKey].total += price * qty;
+                });
+            }
+
+            const orderTotal = Number(o.totalPrice) ||
+                (Array.isArray(o.items)
+                    ? o.items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 1), 0)
+                    : 0);
+
+            g.totalPrice += orderTotal;
+        });
+
+        return Object.values(groups)
+            .map((g) => ({
+                ...g,
+                itemsList: Object.values(g.itemsMap),
+            }))
+            .sort((a, b) => new Date(b.lastCreatedAt || 0) - new Date(a.lastCreatedAt || 0));
+    }, [orders, currentUserId, currentUserName, rooms]);
+
+    const handleSettleCheck = async (bill) => {
+        if (!window.confirm(`${bill.locationName} uchun jami ${bill.totalPrice.toLocaleString()} so'm to'lov qabul qilindimi?`)) {
+            return;
+        }
+
+        try {
+            setSettlingKey(bill.key);
+            await Promise.all(
+                bill.orderIds.map((id) =>
+                    updateDoc(doc(db, "orders", id), {
+                        status: "tolandi",
+                        paidAt: new Date().toISOString(),
+                    })
+                )
+            );
+        } catch (err) {
+            console.error("To'lovni tasdiqlashda xatolik:", err);
+            alert("Xatolik yuz berdi!");
+        } finally {
+            setSettlingKey(null);
+        }
+    };
+
     const handleDeliver = async (orderId) => {
         try {
             await updateDoc(doc(db, "orders", orderId), {
@@ -93,6 +214,8 @@ function BuyurtmalarHeader() {
             console.error("Xatolik:", err);
         }
     };
+
+    const activeBillsCount = tablePayments.filter((b) => b.hasUnpaid).length;
 
     return (
         <div className="w-full">
@@ -109,10 +232,15 @@ function BuyurtmalarHeader() {
 
                     <h1
                         onClick={() => setActiveTab("buyurtmalar")}
-                        className={`text-base font-mono tracking-wide relative cursor-pointer transition-all duration-300 ${activeTab === "buyurtmalar" ? "font-bold text-white" : "font-medium text-slate-400 hover:text-slate-200"
+                        className={`text-base font-mono tracking-wide relative cursor-pointer transition-all duration-300 flex items-center gap-2 ${activeTab === "buyurtmalar" ? "font-bold text-white" : "font-medium text-slate-400 hover:text-slate-200"
                             }`}
                     >
-                        Buyurtmalar
+                        <span>Buyurtmalar</span>
+                        {activeOrders.length > 0 && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-300 font-mono font-bold">
+                                {activeOrders.length}
+                            </span>
+                        )}
                         {activeTab === "buyurtmalar" && (
                             <span className="absolute bottom-[-17px] left-0 w-full h-0.5 bg-indigo-500 rounded-full animate-fadeIn"></span>
                         )}
@@ -120,10 +248,15 @@ function BuyurtmalarHeader() {
 
                     <h1
                         onClick={() => setActiveTab("payments")}
-                        className={`text-base font-mono tracking-wide relative cursor-pointer transition-all duration-300 ${activeTab === "payments" ? "font-bold text-white" : "font-medium text-slate-400 hover:text-slate-200"
+                        className={`text-base font-mono tracking-wide relative cursor-pointer transition-all duration-300 flex items-center gap-2 ${activeTab === "payments" ? "font-bold text-white" : "font-medium text-slate-400 hover:text-slate-200"
                             }`}
                     >
-                        Payments
+                        <span>Payments</span>
+                        {activeBillsCount > 0 && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 font-mono font-bold">
+                                {activeBillsCount}
+                            </span>
+                        )}
                         {activeTab === "payments" && (
                             <span className="absolute bottom-[-17px] left-0 w-full h-0.5 bg-indigo-500 rounded-full animate-fadeIn"></span>
                         )}
@@ -144,13 +277,12 @@ function BuyurtmalarHeader() {
                                 return (
                                     <div
                                         key={order.id}
-                                        className={`w-full bg-slate-900/40 backdrop-blur-xl border p-5 flex flex-col text-white rounded-2xl shadow-xl shadow-slate-950/40 antialiased group hover:border-slate-700 transition-all duration-300 ${
-                                            isReady
+                                        className={`w-full bg-slate-900/40 backdrop-blur-xl border p-5 flex flex-col text-white rounded-2xl shadow-xl shadow-slate-950/40 antialiased group hover:border-slate-700 transition-all duration-300 ${isReady
                                                 ? "border-emerald-500/40 bg-emerald-950/15"
                                                 : isCooking
-                                                ? "border-amber-500/30"
-                                                : "border-slate-800/80"
-                                        }`}
+                                                    ? "border-amber-500/30"
+                                                    : "border-slate-800/80"
+                                            }`}
                                     >
                                         {/* 1. Status bloki */}
                                         {isReady ? (
@@ -259,73 +391,148 @@ function BuyurtmalarHeader() {
                         </div>
                     )
                 ) : (
-                    <div className="w-full max-w-md mx-auto bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 p-5 flex flex-col text-white mt-4 rounded-2xl shadow-2xl shadow-slate-950/50 antialiased">
-
-                        {/* Chek Sarlavhasi */}
-                        <div className="flex items-center justify-center gap-2.5 pb-4 border-b border-slate-800/60">
-                            <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-indigo-400">
-                                <CreditCard size={20} />
-                            </div>
-                            <h1 className="font-mono text-base font-bold tracking-wider uppercase text-slate-200">Elektron Chek</h1>
-                        </div>
-
-                        {/* Ma'lumotlar bloki */}
-                        <div className="mt-4 space-y-4">
-
-                            {/* Stol haqida ma'lumot */}
-                            <div className="flex justify-between items-center bg-slate-950/40 px-3 py-2.5 rounded-xl border border-slate-900">
-                                <span className="text-sm font-semibold text-slate-400">Joylashuv:</span>
-                                <span className="font-mono text-xs font-bold bg-indigo-500/10 text-indigo-400 px-2.5 py-1 rounded-lg border border-indigo-500/20">
-                                    1-xona, 2-stol
-                                </span>
-                            </div>
-
-                            {/* Buyurtmalar ro'yxati */}
-                            <div>
-                                <span className="text-xs font-bold text-slate-500 uppercase font-mono tracking-wider block mb-2">Buyurtma tarkibi</span>
-                                <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1 scrollbar-thin">
-
-                                    {/* Taom 1 */}
-                                    <div className="flex justify-between items-center bg-slate-950/20 px-3 py-2 rounded-xl border border-slate-900/60 hover:border-slate-800 transition">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-mono font-bold bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">1x</span>
-                                            <span className="text-sm font-medium text-slate-300">Osh</span>
+                    /* PAYMENTS TABI: Stollar bo'yicha jamlangan elektron cheklar */
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-12">
+                        {tablePayments.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                {tablePayments.map((bill) => (
+                                    <div
+                                        key={bill.key}
+                                        className={`w-full backdrop-blur-xl border p-5 sm:p-6 flex flex-col text-white rounded-3xl shadow-2xl transition-all duration-300 ${
+                                            bill.hasUnpaid
+                                                ? "bg-slate-900/60 border-slate-800 shadow-slate-950/60"
+                                                : "bg-slate-900/30 border-emerald-500/20 shadow-emerald-950/20 opacity-90"
+                                        }`}
+                                    >
+                                        {/* Chek Sarlavhasi */}
+                                        <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2.5 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 text-indigo-400 shadow-inner">
+                                                    <Receipt size={20} />
+                                                </div>
+                                                <div>
+                                                    <h2 className="font-mono text-sm font-bold tracking-wider uppercase text-slate-100">
+                                                        Elektron Chek
+                                                    </h2>
+                                                    <span className="text-[11px] text-slate-400 font-mono">
+                                                        {bill.ordersCount > 1
+                                                            ? `${bill.ordersCount} ta buyurtma jamlangan`
+                                                            : "1 ta buyurtma"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span
+                                                className={`text-[11px] font-bold font-mono px-2.5 py-1 rounded-xl border ${
+                                                    bill.hasUnpaid
+                                                        ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
+                                                        : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                                                }`}
+                                            >
+                                                {bill.hasUnpaid ? "To'lanmagan" : "To'langan"}
+                                            </span>
                                         </div>
-                                        <span className="font-mono text-sm font-semibold text-slate-400">120 000 so'm</span>
-                                    </div>
 
-                                    {/* Taom 2 */}
-                                    <div className="flex justify-between items-center bg-slate-950/20 px-3 py-2 rounded-xl border border-slate-900/60 hover:border-slate-800 transition">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-mono font-bold bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">2x</span>
-                                            <span className="text-sm font-medium text-slate-300">Shashlik</span>
+                                        {/* Ma'lumotlar bloki */}
+                                        <div className="mt-4 space-y-3.5 flex-1 flex flex-col justify-between">
+                                            <div className="space-y-3">
+                                                {/* Stol haqida ma'lumot (Manzil) */}
+                                                <div className="flex justify-between items-center bg-slate-950/50 px-4 py-3 rounded-2xl border border-slate-900/80">
+                                                    <span className="text-xs font-bold text-slate-500 uppercase font-mono tracking-wider flex items-center gap-2">
+                                                        <MapPin size={15} className="text-indigo-400" /> Manzil
+                                                    </span>
+                                                    <span className="font-mono text-xs font-bold bg-indigo-500/15 text-indigo-300 px-3 py-1.5 rounded-xl border border-indigo-500/30">
+                                                        {bill.locationName}
+                                                    </span>
+                                                </div>
+
+                                                {/* Vaqt */}
+                                                <div className="flex justify-between items-center bg-slate-950/50 px-4 py-3 rounded-2xl border border-slate-900/80">
+                                                    <span className="text-xs font-bold text-slate-500 uppercase font-mono tracking-wider flex items-center gap-2">
+                                                        <CalendarDays size={15} className="text-indigo-400" /> Vaqt
+                                                    </span>
+                                                    <span className="font-mono text-xs text-slate-300 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
+                                                        {formatTime(bill.firstCreatedAt) || "Hozir"}
+                                                        {bill.ordersCount > 1 && bill.lastCreatedAt !== bill.firstCreatedAt && (
+                                                            <span className="text-[10px] text-slate-500 ml-1">
+                                                                (+{formatTime(bill.lastCreatedAt)})
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                </div>
+
+                                                {/* Buyurtmalar ro'yxati (jamlangan taomlar) */}
+                                                <div className="bg-slate-950/40 p-4 rounded-2xl border border-slate-900/80">
+                                                    <div className="flex justify-between items-center mb-3">
+                                                        <span className="text-xs font-bold text-slate-500 uppercase font-mono tracking-wider flex items-center gap-2">
+                                                            <UtensilsCrossed size={14} className="text-indigo-400" /> Buyurtma tarkibi
+                                                        </span>
+                                                        <span className="text-[11px] font-mono text-slate-400">
+                                                            {bill.itemsList.length} xil taom
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
+                                                        {bill.itemsList.map((item, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="flex justify-between items-center bg-slate-900/60 px-3.5 py-2.5 rounded-xl border border-slate-800/80 hover:border-indigo-500/30 transition"
+                                                            >
+                                                                <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                                                    <span className="text-xs font-mono font-bold bg-amber-400/15 text-amber-300 px-2 py-0.5 rounded-lg border border-amber-400/30 shrink-0">
+                                                                        {item.quantity}x
+                                                                    </span>
+                                                                    <span className="text-xs sm:text-sm font-medium text-slate-200 truncate">
+                                                                        {item.name}
+                                                                    </span>
+                                                                </div>
+                                                                <span className="font-mono text-xs sm:text-sm font-semibold text-slate-300 shrink-0">
+                                                                    {item.total.toLocaleString()} so'm
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* To'lov Summasi va Tasdiqlash */}
+                                            <div className="pt-4 border-t border-slate-800/80">
+                                                <div className="flex justify-between items-center px-1 mb-3.5">
+                                                    <span className="text-xs font-semibold text-slate-400 uppercase font-mono">
+                                                        Umumiy summa:
+                                                    </span>
+                                                    <span className="text-2xl font-black font-mono text-emerald-400 tracking-tight">
+                                                        {bill.totalPrice.toLocaleString()} so'm
+                                                    </span>
+                                                </div>
+
+                                                {bill.hasUnpaid ? (
+                                                    <button
+                                                        type="button"
+                                                        disabled={settlingKey === bill.key}
+                                                        onClick={() => handleSettleCheck(bill)}
+                                                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 transition-all cursor-pointer active:scale-98 disabled:opacity-50"
+                                                    >
+                                                        <Banknote size={16} />
+                                                        <span>To'lovni qabul qilish</span>
+                                                    </button>
+                                                ) : (
+                                                    <div className="w-full py-2.5 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold font-mono text-center flex items-center justify-center gap-1.5">
+                                                        <Check size={16} />
+                                                        <span>To'lov to'liq qabul qilingan</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <span className="font-mono text-sm font-semibold text-slate-400">200 000 so'm</span>
                                     </div>
-
-                                    {/* Taom 3 */}
-                                    <div className="flex justify-between items-center bg-slate-950/20 px-3 py-2 rounded-xl border border-slate-900/60 hover:border-slate-800 transition">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-mono font-bold bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">1x</span>
-                                            <span className="text-sm font-medium text-slate-300">Kebab</span>
-                                        </div>
-                                        <span className="font-mono text-sm font-semibold text-slate-400">150 000 so'm</span>
-                                    </div>
-
-                                </div>
+                                ))}
                             </div>
-
-                            {/* To'lov Summasi (Footer) */}
-                            <div className="border-t border-slate-800/80 pt-4 mt-2 flex justify-between items-center px-1">
-                                <span className="text-sm font-medium text-slate-400">Umumiy summa:</span>
-                                <span className="text-xl font-black font-mono text-emerald-400 tracking-tight">
-                                    120 000 so'm
-                                </span>
+                        ) : (
+                            <div className="w-full max-w-md mx-auto bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 p-8 flex flex-col items-center justify-center text-center text-slate-500 mt-6 rounded-2xl">
+                                <Receipt size={36} className="mb-2 opacity-40 text-slate-400" />
+                                <p className="text-sm font-medium">Hozircha to'lov cheklari mavjud emas</p>
                             </div>
-
-                        </div>
+                        )}
                     </div>
-
                 )
             }
         </div>

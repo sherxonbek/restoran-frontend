@@ -7,7 +7,6 @@ import Sidebar from "./Sidebar";
 export default function MainLayout() {
   return (
     <div className="flex h-screen w-full overflow-hidden text-white">
-      {/* Kompyuter uchun chap tarafdagi Sidebar */}
       <Sidebar />
 
       {/* Asosiy kontent bloki */}
@@ -18,7 +17,6 @@ export default function MainLayout() {
           <Outlet />
         </main>
 
-        {/* Mobil uchun pastki navigatsiya */}
         <BottomNav />
       </div>
     </div>

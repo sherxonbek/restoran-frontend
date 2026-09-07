@@ -14,7 +14,7 @@ export default function Navbar() {
   const currentTitle = activeItem ? activeItem.name : 'Restoran'
 
   return (
-    <header className="w-full h-16 bg-white/10 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 rounded-b-xl shadow-lg z-30 shrink-0">
+    <header className="w-full h-16 bg-white/10 backdrop-blur-sm border-b border-white/10 flex items-center justify-between px-6 rounded-b-xl shadow-lg z-30 shrink-0">
       <div>
         <h1 className="text-xl font-bold text-white tracking-wide">
           {currentTitle}
