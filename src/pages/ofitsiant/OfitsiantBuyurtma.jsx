@@ -16,9 +16,17 @@ function OfitsiantBuyurtma() {
   const { roomId, tableId } = useParams();
   const navigate = useNavigate();
 
-  // 2. Redux / Global State
   const { products } = useSelector((state) => state.products);
-  const { tables } = useSelector((state) => state.rooms);
+  const { rooms = [], tables = [] } = useSelector((state) => state.rooms);
+  const { currentUser } = useSelector((state) => state.users);
+
+  const activeUser = currentUser || (() => {
+    try {
+      return JSON.parse(localStorage.getItem("current_user") || "{}");
+    } catch {
+      return {};
+    }
+  })();
 
   // 3. Savatcha boshqaruvi (useCart hooki)
   const {
@@ -40,6 +48,8 @@ function OfitsiantBuyurtma() {
   // 5. Hisoblangan (Derived) ma'lumotlar
   const joriyStolObyekti = tables.find((t) => String(t.id) === String(tableId));
   const haqqoniyStolNomi = formatTableName(joriyStolObyekti?.name, tableId);
+  const joriyXonaObyekti = rooms.find((r) => String(r.id) === String(roomId));
+  const haqqoniyXonaNomi = joriyXonaObyekti?.name || (roomId ? `${roomId}-Xona` : "1-Xona");
 
   const mavjudKategoriyalar = [
     "Hammasi",
@@ -74,6 +84,7 @@ function OfitsiantBuyurtma() {
         item.subcategory?.toLowerCase() === activeSubcategory?.toLowerCase()
       );
     }
+
     return kategoriyaMos;
   });
 
@@ -89,13 +100,17 @@ function OfitsiantBuyurtma() {
     try {
       const yangiBuyurtma = {
         roomId: roomId || "1",
+        roomName: haqqoniyXonaNomi,
         tableId,
         tableName: haqqoniyStolNomi,
+        waiterId: activeUser?.id || "waiter-1",
+        waiterName: activeUser?.fullName || activeUser?.name || "Ofitsiant",
         items: cart.map((item) => ({
           id: item.id,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
+          category: item.category || "",
         })),
         totalPrice: totalSum,
         status: "yangi",

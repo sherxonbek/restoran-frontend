@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Package,
-  Plus,
   AlertTriangle,
   Boxes,
   ArrowDownRight,
@@ -11,13 +10,9 @@ import {
   LayoutGrid,
   Table as TableIcon,
   Filter,
-  CheckCircle2,
   Trash2,
-  Calendar,
   User,
   DollarSign,
-  TrendingDown,
-  Sparkles,
 } from "lucide-react";
 
 import {
@@ -25,6 +20,7 @@ import {
   stockIn,
   stockOut,
   deleteStockItem,
+  seedInitialStock,
 } from "@/store/slices/inventorySlice";
 import { useToast } from "@/hooks/useToast";
 import { formatCurrency } from "@/utils/formatters";
@@ -81,10 +77,6 @@ function Ombor() {
     return items.filter((i) => i.quantity <= i.minStock && i.quantity > 0);
   }, [items]);
 
-  const tugaganlar = useMemo(() => {
-    return items.filter((i) => i.quantity <= 0);
-  }, [items]);
-
   // 2. Filtrlangan tovarlar
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -114,9 +106,13 @@ function Ombor() {
   }, [items, searchQuery, selectedCategory, statusFilter]);
 
   // Handlers
-  const handleSaveNewStock = (newItem) => {
-    dispatch(addStockItem(newItem));
-    showToast(`Muvaffaqiyatli: "${newItem.name}" omborga qo'shildi!`);
+  const handleSaveNewStock = async (newItem) => {
+    try {
+      await dispatch(addStockItem(newItem)).unwrap();
+      showToast(`Muvaffaqiyatli: "${newItem.name}" omborga qo'shildi!`);
+    } catch (err) {
+      showToast(`Xatolik: ${err || "Saqlashda xatolik yuz berdi"}`);
+    }
   };
 
   const handleOpenActionModal = (item, type) => {
@@ -127,17 +123,21 @@ function Ombor() {
     });
   };
 
-  const handleConfirmAction = (payload) => {
-    if (actionModalData.type === "kirim") {
-      dispatch(stockIn(payload));
-      showToast(
-        `Kirim qilindi: +${payload.quantity} ${actionModalData.item.unit} ${actionModalData.item.name}`
-      );
-    } else {
-      dispatch(stockOut(payload));
-      showToast(
-        `Chiqim qilindi: -${payload.quantity} ${actionModalData.item.unit} ${actionModalData.item.name}`
-      );
+  const handleConfirmAction = async (payload) => {
+    try {
+      if (actionModalData.type === "kirim") {
+        await dispatch(stockIn(payload)).unwrap();
+        showToast(
+          `Kirim qilindi: +${payload.quantity} ${actionModalData.item.unit} ${actionModalData.item.name}`
+        );
+      } else {
+        await dispatch(stockOut(payload)).unwrap();
+        showToast(
+          `Chiqim qilindi: -${payload.quantity} ${actionModalData.item.unit} ${actionModalData.item.name}`
+        );
+      }
+    } catch (err) {
+      showToast(`Xatolik: ${err || "Amalni bajarib bo'lmadi"}`);
     }
   };
 
@@ -148,12 +148,26 @@ function Ombor() {
     });
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deleteModalData.item) {
-      dispatch(deleteStockItem(deleteModalData.item.id));
-      showToast(`"${deleteModalData.item.name}" ombordan o'chirildi!`);
+      try {
+        await dispatch(deleteStockItem(deleteModalData.item.id)).unwrap();
+        showToast(`"${deleteModalData.item.name}" ombordan o'chirildi!`);
+      } catch (err) {
+        showToast(`Xatolik: ${err || "O'chirishda xatolik yuz berdi"}`);
+      }
     }
     setDeleteModalData({ isOpen: false, item: null });
+  };
+
+  const handleSeedData = async () => {
+    try {
+      showToast("Boshlang'ich mahsulotlar bazaga yuklanmoqda...");
+      await dispatch(seedInitialStock()).unwrap();
+      showToast("Barcha mahsulotlar muvaffaqiyatli bazaga yuklandi!");
+    } catch (err) {
+      showToast(`Yuklashda xatolik: ${err}`);
+    }
   };
 
   return (
@@ -672,8 +686,22 @@ function Ombor() {
           )}
 
           {filteredItems.length === 0 && (
-            <div className="p-12 text-center rounded-3xl bg-slate-900/40 border border-slate-800 text-slate-500 text-xs">
-              Qidiruv bo'yicha mos keluvchi xom-ashyolar topilmadi
+            <div className="p-12 text-center rounded-3xl bg-slate-900/40 border border-slate-800 text-slate-500 text-xs flex flex-col items-center justify-center gap-3">
+              <Boxes size={32} className="text-slate-600" />
+              <p>
+                {items.length === 0
+                  ? "Omborxona bazasida mahsulotlar mavjud emas."
+                  : "Qidiruv bo'yicha mos keluvchi xom-ashyolar topilmadi"}
+              </p>
+              {items.length === 0 && (
+                <button
+                  type="button"
+                  onClick={handleSeedData}
+                  className="px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold transition-all cursor-pointer text-xs"
+                >
+                  Boshlang'ich 12 ta xom-ashyoni bazaga yuklash
+                </button>
+              )}
             </div>
           )}
         </div>

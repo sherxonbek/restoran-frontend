@@ -89,6 +89,8 @@ function Login() {
         navigate("/admin", { replace: true });
       } else if (role === "ofitsiant") {
         navigate("/ofitsiant", { replace: true });
+      } else if (role === "oshpaz") {
+        navigate("/oshpaz", { replace: true });
       } else {
         navigate("/", { replace: true });
       }

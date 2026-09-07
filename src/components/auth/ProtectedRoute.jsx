@@ -35,6 +35,9 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
       if (userRole === "ofitsiant") {
         return <Navigate to="/ofitsiant" replace />;
       }
+      if (userRole === "oshpaz") {
+        return <Navigate to="/oshpaz" replace />;
+      }
       return <Navigate to="/auth/login" replace />;
     }
   }

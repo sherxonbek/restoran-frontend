@@ -18,6 +18,7 @@ import OfitsiantBuyurtma from "@/pages/ofitsiant/OfitsiantBuyurtma";
 import Buyurtmalar from "@/pages/ofitsiant/Buyurtmalar";
 import HomeGreeting from "@/pages/HomeGreeting";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import OshpazHome from "@/pages/oshpaz/OshpazHome";
 
 const router = createBrowserRouter([
   // 1. Asosiy ildiz marshruti - vaqtinchalik Salom
@@ -146,6 +147,18 @@ const router = createBrowserRouter([
         ),
       },
     ],
+  },
+
+  // 5. Oshpaz marshruti (/oshpaz) - oshpaz va admin uchun
+  {
+    path: "/oshpaz",
+    element: (
+      <ProtectedRoute allowedRoles={["oshpaz", "admin"]}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <OshpazHome />
+        </Suspense>
+      </ProtectedRoute>
+    ),
   },
 ]);
 
