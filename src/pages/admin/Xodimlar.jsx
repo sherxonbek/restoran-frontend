@@ -164,6 +164,7 @@ function Xodimlar() {
                 <option value="ofitsiant">Ofitsiant</option>
                 <option value="admin">Administrator</option>
                 <option value="oshpaz">Oshpaz</option>
+                <option value="kassir">Kassir</option>
                 <option value="boshqa">Boshqa</option>
               </select>
             </div>

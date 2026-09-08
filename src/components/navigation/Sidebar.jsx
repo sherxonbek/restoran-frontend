@@ -15,6 +15,7 @@ import {
   Bell,
   BellOff,
   Check,
+  Wallet,
 } from "lucide-react";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { logoutUser } from "@/store/slices/userSlice";
@@ -99,6 +100,12 @@ export default function Sidebar() {
       icon: Package,
       url: "/admin/ombor",
       badge: `${inventoryItems.length}`,
+    },
+    {
+      id: "kassa",
+      name: "Kassa Paneli",
+      icon: Wallet,
+      url: "/kassir",
     },
     {
       id: "salaries",

@@ -271,7 +271,7 @@ function BuyurtmalarHeader() {
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4 px-4 pb-20">
                             {activeOrders.map((order) => {
                                 const isReady = order.status === "tayyor";
-                                const isDelivered = order.status === "bajarildi";
+                                const isDelivered = order.status === "bajarildi" || order.status === "yetkazildi";
                                 const isCooking = order.status === "tayyorlanmoqda";
 
                                 return (
@@ -369,14 +369,24 @@ function BuyurtmalarHeader() {
                                                     <CheckCircle2 size={16} />
                                                     <span>Yetkazildi (Mijozga topshirildi)</span>
                                                 </div>
-                                            ) : (
+                                            ) : isReady ? (
                                                 <button
                                                     type="button"
                                                     onClick={() => handleDeliver(order.id)}
-                                                    className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 transition-all cursor-pointer active:scale-98"
+                                                    className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all cursor-pointer active:scale-98 animate-pulse"
                                                 >
                                                     <CheckCircle2 size={16} />
-                                                    Yetkazildi
+                                                    <span>Yetkazildi</span>
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    disabled
+                                                    className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-800/40 border border-slate-800/80 text-slate-500 font-bold text-xs cursor-not-allowed select-none opacity-60"
+                                                    title="Oshpaz taomni tayyor deb tasdiqlagach ushbu tugma faollashadi"
+                                                >
+                                                    <CheckCircle2 size={16} />
+                                                    <span>Yetkazildi (Kutilmoqda)</span>
                                                 </button>
                                             )}
                                         </div>

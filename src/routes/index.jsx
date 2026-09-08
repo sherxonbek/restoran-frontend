@@ -19,6 +19,7 @@ import Buyurtmalar from "@/pages/ofitsiant/Buyurtmalar";
 import HomeGreeting from "@/pages/HomeGreeting";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import OshpazHome from "@/pages/oshpaz/OshpazHome";
+import KassirHome from "@/pages/kassir/KassirHome";
 
 const router = createBrowserRouter([
   // 1. Asosiy ildiz marshruti - vaqtinchalik Salom
@@ -156,6 +157,18 @@ const router = createBrowserRouter([
       <ProtectedRoute allowedRoles={["oshpaz", "admin"]}>
         <Suspense fallback={<LoadingSpinner />}>
           <OshpazHome />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+
+  // 6. Kassir marshruti (/kassir) - kassir va admin uchun
+  {
+    path: "/kassir",
+    element: (
+      <ProtectedRoute allowedRoles={["kassir", "admin"]}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <KassirHome />
         </Suspense>
       </ProtectedRoute>
     ),

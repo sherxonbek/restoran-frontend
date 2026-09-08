@@ -91,6 +91,8 @@ function Login() {
         navigate("/ofitsiant", { replace: true });
       } else if (role === "oshpaz") {
         navigate("/oshpaz", { replace: true });
+      } else if (role === "kassir") {
+        navigate("/kassir", { replace: true });
       } else {
         navigate("/", { replace: true });
       }
