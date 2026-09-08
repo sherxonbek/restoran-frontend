@@ -1,4 +1,4 @@
-import { User, LogOut, Wallet, Banknote, Sparkles } from "lucide-react";
+import {  LogOut, Wallet, Banknote, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutUser } from "@/store/slices/userSlice";

@@ -8,14 +8,11 @@ import {
   CreditCard,
   Smartphone,
   Printer,
-  CalendarDays,
-  MapPin,
   UtensilsCrossed,
   CheckCircle2,
   Clock,
   Search,
   Check,
-  Percent,
   X,
   TrendingUp,
   Coins,
@@ -65,14 +62,13 @@ export default function KassirHome() {
 
   const currentUserName = activeUser?.fullName || activeUser?.name || "Kassir";
 
-  const [activeTab, setActiveTab] = useState("faol"); // "faol" | "tarix" | "statistika"
   const [searchTerm, setSearchTerm] = useState("");
 
   // To'lov modali holati
   const [checkoutBill, setCheckoutBill] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("naqd"); // "naqd" | "karta" | "click"
+  const [paymentMethod, setPaymentMethod] = useState("naqd");
   const [cashReceived, setCashReceived] = useState("");
-  const [servicePercent, setServicePercent] = useState(10); // 10% xizmat haqi
+  const [servicePercent, setServicePercent] = useState(10);
   const [hasServiceFee, setHasServiceFee] = useState(true);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
