@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/services/firebase";
@@ -47,6 +47,8 @@ const isToday = (isoString) => {
   }
 };
 
+const generateReceiptNumber = () => Math.floor(100000 + Math.random() * 900000);
+
 export default function KassirHome() {
   const { orders = [] } = useSelector((state) => state.orders);
   const { rooms = [] } = useSelector((state) => state.rooms);
@@ -62,13 +64,14 @@ export default function KassirHome() {
 
   const currentUserName = activeUser?.fullName || activeUser?.name || "Kassir";
 
+  const [activeTab, setActiveTab] = useState("faol");
   const [searchTerm, setSearchTerm] = useState("");
 
   // To'lov modali holati
   const [checkoutBill, setCheckoutBill] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("naqd");
   const [cashReceived, setCashReceived] = useState("");
-  const [servicePercent, setServicePercent] = useState(10);
+  const servicePercent = 10;
   const [hasServiceFee, setHasServiceFee] = useState(true);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -77,7 +80,7 @@ export default function KassirHome() {
   const [printReceiptData, setPrintReceiptData] = useState(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
-  const getLocation = (order) => {
+  const getLocation = useCallback((order) => {
     const roomObj = rooms.find((r) => String(r.id) === String(order.roomId));
     const roomName =
       order.roomName || roomObj?.name || (order.roomId ? `${order.roomId}-Xona` : "");
@@ -87,7 +90,7 @@ export default function KassirHome() {
       return `${roomName}, ${tableName}`;
     }
     return tableName;
-  };
+  }, [rooms]);
 
   // 1. Faol stollar (To'lanmagan buyurtmalar jamlanmasi)
   const activeBills = useMemo(() => {
@@ -178,7 +181,7 @@ export default function KassirHome() {
         itemsList: Object.values(g.itemsMap),
       }))
       .sort((a, b) => new Date(b.lastCreatedAt || 0) - new Date(a.lastCreatedAt || 0));
-  }, [orders, rooms]);
+  }, [orders, getLocation]);
 
   // 2. Bugungi to'langan hisoblar tarixi
   const paidBillsHistory = useMemo(() => {
@@ -293,7 +296,7 @@ export default function KassirHome() {
         paymentMethod,
         cashReceived: Number(cashReceived) || currentTotal,
         change: currentChange,
-        receiptNumber: Math.floor(100000 + Math.random() * 900000),
+        receiptNumber: generateReceiptNumber(),
       };
 
       setPrintReceiptData(receiptPayload);
@@ -327,7 +330,7 @@ export default function KassirHome() {
       paymentMethod: bill.paymentMethod || "naqd",
       cashReceived: tot,
       change: 0,
-      receiptNumber: Math.floor(100000 + Math.random() * 900000),
+      receiptNumber: generateReceiptNumber(),
     });
     setIsReceiptOpen(true);
   };

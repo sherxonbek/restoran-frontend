@@ -1,10 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     CalendarDays,
     ChevronLeft,
     Clock,
-    CreditCard,
     MapPin,
     UtensilsCrossed,
     CheckCircle2,
@@ -76,7 +75,7 @@ function BuyurtmalarHeader() {
             });
     }, [orders, currentUserId, currentUserName]);
 
-    const getLocation = (order) => {
+    const getLocation = useCallback((order) => {
         const roomObj = rooms.find((r) => String(r.id) === String(order.roomId));
         const roomName = order.roomName || roomObj?.name || (order.roomId ? `${order.roomId}-Xona` : "");
         const tableName = order.tableName || "Stol";
@@ -85,7 +84,7 @@ function BuyurtmalarHeader() {
             return `${roomName}, ${tableName}`;
         }
         return tableName;
-    };
+    }, [rooms]);
 
     const [settlingKey, setSettlingKey] = useState(null);
 
@@ -180,7 +179,7 @@ function BuyurtmalarHeader() {
                 itemsList: Object.values(g.itemsMap),
             }))
             .sort((a, b) => new Date(b.lastCreatedAt || 0) - new Date(a.lastCreatedAt || 0));
-    }, [orders, currentUserId, currentUserName, rooms]);
+    }, [orders, currentUserId, currentUserName, getLocation]);
 
     const handleSettleCheck = async (bill) => {
         if (!window.confirm(`${bill.locationName} uchun jami ${bill.totalPrice.toLocaleString()} so'm to'lov qabul qilindimi?`)) {

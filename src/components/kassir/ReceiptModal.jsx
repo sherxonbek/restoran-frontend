@@ -21,7 +21,7 @@ export default function ReceiptModal({ isOpen, onClose, receiptData }) {
     paymentMethod = "naqd",
     cashReceived = 0,
     change = 0,
-    receiptNumber = Math.floor(100000 + Math.random() * 900000),
+    receiptNumber = "000000",
   } = receiptData;
 
   const formattedDate = new Date(createdAt).toLocaleString("uz-UZ", {
